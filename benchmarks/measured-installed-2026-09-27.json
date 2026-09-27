@@ -1,0 +1,280 @@
+{
+  "schema_version": 1,
+  "scope": "Backend only. Every request starts a new process and reloads the model. First observed request and subsequent sequential requests are reported separately. OS/disk caches are uncontrolled. No cold-cache, resident-model, GUI, OCR, or audible-playback claim.",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "versions": {
+    "python": "3.12.12 (main, Oct  9 2025, 11:07:00) [Clang 17.0.0 (clang-1700.4.4.1)]",
+    "piper": "1.8.0",
+    "onnxruntime": "1.30.0"
+  },
+  "model_sha256": "264f5b1d689355b0e0bb37ea6a4cd019e737955e1748138d251c2de139293a89",
+  "config_sha256": "df38e892ed949f62d0c40978bc666de0b341c5f7921840ae7c72f4df8e8ffa05",
+  "script_sha256": "6ed06d00ffc9fa5de64b5d1454fb5ce09b1e67dbcb983f171fb61f8c2e1cc1e8",
+  "benchmark_sha256": "61fc8d948c06220385a63e08377ec6b381aaef43ce332ec59706c07030e7aee3",
+  "model_bytes": 18555534,
+  "text": "Dieser Test misst die lokale Sprachausgabe. Der erste Puffer soll schnell bereitstehen.",
+  "timeout_seconds": 30,
+  "poll_interval_seconds": 0.005,
+  "p95_method": "nearest-rank, successful samples only",
+  "samples": [
+    {
+      "first_buffer_seconds": 1.1512600000005477,
+      "completion_seconds": 1.3424236249993555,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 1,
+      "phase": "first_observed_process"
+    },
+    {
+      "first_buffer_seconds": 0.9123180000005959,
+      "completion_seconds": 1.1021156250008062,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 2,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9051550000003772,
+      "completion_seconds": 1.10172645899911,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 3,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9186765829999786,
+      "completion_seconds": 1.1246558750008262,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 4,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8861341249994439,
+      "completion_seconds": 1.0928471669994906,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 5,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9101247919988964,
+      "completion_seconds": 1.1076697919997969,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 6,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9569430420015124,
+      "completion_seconds": 1.1574807920005696,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 7,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8925084999991668,
+      "completion_seconds": 1.085046666999915,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 8,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9498762919993169,
+      "completion_seconds": 1.1226857919991744,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 9,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8911313749995315,
+      "completion_seconds": 1.0793406249995314,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 10,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8799097079991043,
+      "completion_seconds": 1.0606513750008162,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 11,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9444767919994774,
+      "completion_seconds": 1.1228341669993824,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 12,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8749897080015216,
+      "completion_seconds": 1.0804059580004832,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 13,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.870882832999996,
+      "completion_seconds": 1.058202917000017,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 14,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8511408330014092,
+      "completion_seconds": 1.04103033300089,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 15,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.891520874998605,
+      "completion_seconds": 1.095549249999749,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 16,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9562574579995271,
+      "completion_seconds": 1.17492241599939,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 17,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.9480847919985536,
+      "completion_seconds": 1.1487984169998526,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 18,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8780320000005304,
+      "completion_seconds": 1.0432139590011502,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 19,
+      "phase": "repeated_fresh_process"
+    },
+    {
+      "first_buffer_seconds": 0.8910817920004774,
+      "completion_seconds": 1.0679367079992517,
+      "exit_code": 0,
+      "timeout": false,
+      "valid_complete_audio": true,
+      "ok": true,
+      "error": null,
+      "run": 20,
+      "phase": "repeated_fresh_process"
+    }
+  ],
+  "summary": {
+    "all": {
+      "first_buffer_seconds": {
+        "n": 20,
+        "median": 0.898831749999772,
+        "p95": 0.9569430420015124
+      },
+      "completion_seconds": {
+        "n": 20,
+        "median": 1.0986378544994295,
+        "p95": 1.17492241599939
+      }
+    },
+    "first_observed": {
+      "first_buffer_seconds": {
+        "n": 1,
+        "median": 1.1512600000005477,
+        "p95": 1.1512600000005477
+      },
+      "completion_seconds": {
+        "n": 1,
+        "median": 1.3424236249993555,
+        "p95": 1.3424236249993555
+      }
+    },
+    "repeated": {
+      "first_buffer_seconds": {
+        "n": 19,
+        "median": 0.8925084999991668,
+        "p95": 0.9569430420015124
+      },
+      "completion_seconds": {
+        "n": 19,
+        "median": 1.095549249999749,
+        "p95": 1.17492241599939
+      }
+    }
+  },
+  "failed_runs": 0
+}

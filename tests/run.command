@@ -8,3 +8,4 @@ for NAME in test-buffer-pause test-ocr-cancellation test-watchdog test-seek-reus
   "$TASK_TEST_DIR/$NAME"
 done
 python3 -m py_compile synthesize.py voice_server.py
+python3 -m unittest discover -s benchmarks -p 'test_*.py'

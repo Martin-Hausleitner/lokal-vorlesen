@@ -61,6 +61,8 @@ Wenn vor dem ersten Audiopuffer 30 Sekunden lang keine Ausgabe startet, wird aus
 ./tests/run.command
 ```
 
+Reproduzierbare Laufzeitmessungen: [Benchmark-Anleitung](benchmarks/README.md). Sie trennt den ersten beobachteten Prozess von nachfolgenden Prozessen und dokumentiert Cache- und Messgrenzen.
+
 ## Quellen und Lizenzen
 
 Der eigene Quellcode steht unter **GPL-3.0**; siehe `LICENSE`. Stimmen und Fremdkomponenten behalten ihre jeweiligen Lizenzen.
