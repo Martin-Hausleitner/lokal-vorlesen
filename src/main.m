@@ -337,7 +337,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.status.accessibilityLabel = @"Status"; self.status.toolTip = self.status.stringValue;
     self.voiceLabel = [NSTextField labelWithString:@"Thorsten · Deutsch"];
     self.clockLabel = [NSTextField labelWithString:@""];
-    self.editorHintLabel = [NSTextField labelWithString:@"⌘↩ Vorlesen / Pause"];
+    self.editorHintLabel = [NSTextField labelWithString:@"⌘↩ Start/Pause"];
     self.editorHintLabel.font = [NSFont systemFontOfSize:10];
     self.editorHintLabel.textColor = NSColor.secondaryLabelColor; self.editorHintLabel.alignment = NSTextAlignmentRight;
     self.editorHintLabel.accessibilityLabel = @"Tastenkürzel"; self.editorHintLabel.toolTip = self.editorHintLabel.stringValue;
