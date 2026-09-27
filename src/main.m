@@ -100,8 +100,8 @@ static NSString *UsableText(id value) {
 @implementation LevelView
 - (BOOL)isOpaque { return NO; }
 - (void)drawRect:(NSRect)dirty {
-    const NSUInteger count = 7;
-    CGFloat gap = 3, width = (self.bounds.size.width - (count - 1) * gap) / count;
+    const NSUInteger count = 5;
+    CGFloat gap = 2, width = (self.bounds.size.width - (count - 1) * gap) / count;
     for (NSUInteger i = 0; i < count; i++) {
         double profile = 0.35 + 0.65 * fabs(sin((double)i * 1.73));
         CGFloat height = 3 + self.level * profile * (self.bounds.size.height - 4);
@@ -127,6 +127,8 @@ static NSString *UsableText(id value) {
 @property NSPanel *window;
 @property NSPanel *actionPanel;
 @property NSPanel *textPanel;
+@property BOOL readingTextPinned;
+@property NSProgressIndicator *bufferIndicator;
 @property NSTextField *liveTextLabel;
 @property NSString *currentChunkText;
 @property double scrollAccumulator;
@@ -226,6 +228,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     self.pendingTasks = [NSMutableDictionary dictionary];
+    self.readingTextPinned = [[NSUserDefaults standardUserDefaults] boolForKey:@"readingTextPinned"];
     self.autoClipboard = [[NSUserDefaults standardUserDefaults] boolForKey:@"autoClipboard"];
     self.clipboardChange = NSPasteboard.generalPasteboard.changeCount;
     [NSApp setServicesProvider:self];
@@ -279,14 +282,14 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     surface.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable; self.window.contentView = surface;
     NSTrackingArea *tracking = [[NSTrackingArea alloc] initWithRect:NSZeroRect options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect owner:self userInfo:nil];
     [surface addTrackingArea:tracking];
-    NSView *controls = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 208, 32)];
+    NSView *controls = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 180, 32)];
     controls.autoresizingMask = NSViewMinYMargin; [surface addSubview:controls];
-    self.levelView = [[LevelView alloc] initWithFrame:NSMakeRect(12, 9, 22, 14)];
+    self.levelView = [[LevelView alloc] initWithFrame:NSMakeRect(9, 9, 18, 14)];
     self.levelView.accessibilityLabel = @"Audiopegel"; [controls addSubview:self.levelView];
     self.playButton = [self iconButton:@"play.fill" label:@"Start" action:@selector(primaryAction:)];
-    self.playButton.frame = NSMakeRect(43, 5, 22, 22); [controls addSubview:self.playButton];
+    self.playButton.frame = NSMakeRect(33, 4, 24, 24); [controls addSubview:self.playButton];
     NSButton *stop = [self iconButton:@"stop.fill" label:@"Stopp" action:@selector(stop:)];
-    stop.frame = NSMakeRect(75, 5, 22, 22); [controls addSubview:stop];
+    stop.frame = NSMakeRect(63, 4, 24, 24); [controls addSubview:stop];
     self.speed = [NSSlider sliderWithValue:1 minValue:0.5 maxValue:4 target:self action:@selector(changeSpeed:)];
     self.speed.continuous = YES; self.speed.accessibilityLabel = @"Wiedergabetempo";
     double saved = [[NSUserDefaults standardUserDefaults] doubleForKey:@"playbackRate"];
@@ -297,11 +300,19 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.speedLabel.frame = NSMakeRect(201, 12, 42, 15); self.speedLabel.accessibilityLabel = @"Aktuelles Tempo";
     self.speedButton = [NSButton buttonWithTitle:self.speedLabel.stringValue target:self action:@selector(showSpeed:)];
     self.speedButton.bordered = NO; self.speedButton.font = [NSFont monospacedDigitSystemFontOfSize:11 weight:NSFontWeightMedium];
-    self.speedButton.contentTintColor = NSColor.whiteColor; self.speedButton.frame = NSMakeRect(110, 5, 60, 22);
+    self.speedButton.contentTintColor = NSColor.whiteColor; self.speedButton.frame = NSMakeRect(91, 4, 52, 24);
+    self.speedButton.toolTip = @"Tempo wählen · Scrollen ändert das Tempo";
     self.speedButton.accessibilityLabel = @"Tempo wählen"; [controls addSubview:self.speedButton];
     self.settingsButton = [self iconButton:@"gearshape" label:@"Einstellungen" action:@selector(showSettings:)];
-    self.settingsButton.frame = NSMakeRect(181, 5, 22, 22); self.settingsButton.hidden = YES;
+    self.settingsButton.frame = NSMakeRect(149, 4, 24, 24); self.settingsButton.hidden = NO;
     [controls addSubview:self.settingsButton];
+    self.bufferIndicator = [[NSProgressIndicator alloc] initWithFrame:NSMakeRect(10, 8, 16, 16)];
+    self.bufferIndicator.style = NSProgressIndicatorStyleSpinning;
+    self.bufferIndicator.controlSize = NSControlSizeSmall;
+    self.bufferIndicator.displayedWhenStopped = NO;
+    self.bufferIndicator.accessibilityLabel = @"Audio wird vorbereitet";
+    [controls addSubview:self.bufferIndicator];
+    surface.toolTip = @"Scrollen spult · Auf dem Tempo scrollen ändert das Tempo";
     self.status = [NSTextField labelWithString:@"Bereit"];
     self.voiceLabel = [NSTextField labelWithString:@"Thorsten · Deutsch"];
     self.clockLabel = [NSTextField labelWithString:@""];
@@ -328,22 +339,21 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
         }
         if (weakSelf.window.visible) {
             BOOL inside = NSPointInRect(NSEvent.mouseLocation, weakSelf.window.frame);
-            if (inside && weakSelf.settingsButton.hidden) [weakSelf mouseEntered:nil];
-            else if (!inside && !weakSelf.settingsButton.hidden) [weakSelf mouseExited:nil];
             [weakSelf showLiveText:inside];
-        }
+        } else [weakSelf showLiveText:NO];
     }];
 }
-- (void)mouseEntered:(NSEvent *)event {
-    self.settingsButton.hidden = NO;
-    NSRect frame = self.window.frame; frame.size.width = self.editorView.hidden ? 208 : 288;
-    [self.window setFrame:frame display:YES]; [self positionWindow];
+- (void)mouseEntered:(NSEvent *)event { [self showLiveText:YES]; }
+- (void)mouseExited:(NSEvent *)event { [self showLiveText:NO]; }
+- (void)toggleReadingText:(id)sender {
+    self.readingTextPinned = !self.readingTextPinned;
+    [[NSUserDefaults standardUserDefaults] setBool:self.readingTextPinned forKey:@"readingTextPinned"];
+    [self showLiveText:NO];
 }
-- (void)mouseExited:(NSEvent *)event {
-    if (!self.editorView.hidden) return;
-    self.settingsButton.hidden = YES;
-    NSRect frame = self.window.frame; frame.size.width = 180;
-    [self.window setFrame:frame display:YES]; [self positionWindow];
+- (BOOL)validateMenuItem:(NSMenuItem *)item {
+    if (item.action == @selector(toggleReadingText:))
+        item.state = self.readingTextPinned ? NSControlStateValueOn : NSControlStateValueOff;
+    return YES;
 }
 - (void)primaryAction:(id)sender {
     if (self.player) [self togglePause:nil];
@@ -365,10 +375,10 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
 }
 - (void)chooseSpeed:(NSMenuItem *)sender { self.speed.doubleValue = sender.tag / 100.0; [self changeSpeed:nil]; }
 - (void)handleScroll:(NSEvent *)event {
-    NSPoint point = [self.window.contentView convertPoint:event.locationInWindow fromView:nil];
+    NSPoint point = [self.speedButton convertPoint:event.locationInWindow fromView:nil];
     double delta = fabs(event.scrollingDeltaY) >= fabs(event.scrollingDeltaX) ? event.scrollingDeltaY : event.scrollingDeltaX;
     if (fabs(delta) < 0.01) return;
-    if (point.x >= 106 && point.x <= 174) {
+    if (NSPointInRect(point, self.speedButton.bounds)) {
         self.scrollAccumulator += delta;
         double threshold = event.hasPreciseScrollingDeltas ? 6 : 1;
         if (fabs(self.scrollAccumulator) >= threshold) {
@@ -391,8 +401,11 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     NSDictionary *item = data ? [NSJSONSerialization JSONObjectWithData:data options:0 error:nil] : nil;
     self.currentChunkText = [item[@"text"] isKindOfClass:NSString.class] ? item[@"text"] : nil;
 }
+- (BOOL)shouldShowLiveText:(BOOL)hovered {
+    return self.window.visible && (hovered || self.readingTextPinned) && self.currentChunkText.length && self.audioDirectory.length;
+}
 - (void)showLiveText:(BOOL)hovered {
-    if (!hovered || !self.currentChunkText.length || !self.audioDirectory.length) { [self.textPanel orderOut:nil]; return; }
+    if (![self shouldShowLiveText:hovered]) { [self.textPanel orderOut:nil]; return; }
     if (!self.textPanel) {
         self.textPanel = [[FloatingPanel alloc] initWithContentRect:NSMakeRect(0,0,320,106) styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel backing:NSBackingStoreBuffered defer:NO];
         self.textPanel.releasedWhenClosed = NO; self.textPanel.opaque = NO; self.textPanel.backgroundColor = NSColor.clearColor;
@@ -450,6 +463,8 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     NSMenuItem *automatic = [menu addItemWithTitle:@"Kopiertes automatisch vorlesen" action:@selector(toggleAutoClipboard:) keyEquivalent:@""];
     automatic.target = self; automatic.state = self.autoClipboard ? NSControlStateValueOn : NSControlStateValueOff;
     [menu addItemWithTitle:self.editorView.hidden ? @"Text eingeben…" : @"Texteingabe schließen" action:@selector(toggleEditor:) keyEquivalent:@""].target = self;
+    NSMenuItem *reading = [menu addItemWithTitle:@"Lesetext anzeigen" action:@selector(toggleReadingText:) keyEquivalent:@"t"];
+    reading.target = self; reading.state = self.readingTextPinned ? NSControlStateValueOn : NSControlStateValueOff;
     [menu addItem:NSMenuItem.separatorItem];
     NSMenuItem *top = [menu addItemWithTitle:@"Oben an der Notch" action:@selector(useNotch:) keyEquivalent:@""]; top.target = self; top.state = [self.positionMode isEqual:@"notch"] ? NSControlStateValueOn : NSControlStateValueOff;
     NSMenuItem *bottom = [menu addItemWithTitle:@"Unten über Aqua" action:@selector(useBottom:) keyEquivalent:@""]; bottom.target = self; bottom.state = [self.positionMode isEqual:@"bottom"] ? NSControlStateValueOn : NSControlStateValueOff;
@@ -479,7 +494,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     CGFloat y = [self.positionMode isEqual:@"bottom"] ? NSMinY(visible) + 88 : NSMaxY(visible) - frame.size.height - 6;
     [self.window setFrameOrigin:NSMakePoint(x, MAX(NSMinY(visible), y))];
 }
-- (void)hideWindow:(id)sender { [self.window orderOut:nil]; }
+- (void)hideWindow:(id)sender { [self.window orderOut:nil]; [self.textPanel orderOut:nil]; }
 - (void)toggleEditor:(id)sender {
     BOOL expand = self.editorView.hidden;
     NSRect frame = self.window.frame; frame.size.height = expand ? 142 : 32; frame.size.width = expand ? 288 : 180;
@@ -544,7 +559,15 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     BOOL transportActive = self.audioDirectory.length && !self.streamPaused;
     self.playButton.image = [NSImage imageWithSystemSymbolName:transportActive ? @"pause.fill" : @"play.fill" accessibilityDescription:transportActive ? @"Pause" : @"Start"];
     self.playButton.accessibilityLabel = transportActive ? @"Pause" : self.audioDirectory.length ? @"Fortsetzen" : @"Start";
+    self.playButton.toolTip = self.playButton.accessibilityLabel;
+    BOOL buffering = self.audioDirectory.length && !self.player && !self.streamPaused;
+    self.levelView.hidden = buffering;
+    if (buffering && !NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion) [self.bufferIndicator startAnimation:nil];
+    else [self.bufferIndicator stopAnimation:nil];
+    if (buffering && NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion) self.levelView.hidden = NO;
     self.levelView.toolTip = self.status.stringValue;
+    self.levelView.accessibilityLabel = [NSString stringWithFormat:@"Audiopegel · %@", self.status.stringValue];
+    self.window.accessibilityLabel = [NSString stringWithFormat:@"Lokal vorlesen · %@", self.status.stringValue];
     [self.player updateMeters];
     double level = active ? pow(10, [self.player averagePowerForChannel:0] / 35.0) : 0;
     if (NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion) level = active ? 0.3 : 0;
@@ -565,6 +588,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     NSMenu *appMenu = [[NSMenu alloc] init];
     [appMenu addItemWithTitle:@"Player öffnen" action:@selector(openWindow:) keyEquivalent:@""] .target = self;
     [appMenu addItemWithTitle:@"Textfeld ein-/ausblenden" action:@selector(toggleEditor:) keyEquivalent:@"e"].target = self;
+    [appMenu addItemWithTitle:@"Lesetext anzeigen" action:@selector(toggleReadingText:) keyEquivalent:@"t"].target = self;
     [appMenu addItemWithTitle:@"Stimmen & Modelle…" action:@selector(openVoices:) keyEquivalent:@","].target = self;
     [appMenu addItemWithTitle:@"Bereich vorlesen…" action:@selector(ocrAudio:) keyEquivalent:@""].target = self;
     [appMenu addItemWithTitle:@"Zwischenablage vorlesen" action:@selector(clipboardAudio:) keyEquivalent:@""].target = self;
