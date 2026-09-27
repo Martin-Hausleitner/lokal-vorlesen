@@ -8,7 +8,7 @@ Hear text locally from a context action; select a voice by listening; keep work 
 ## Personas and jobs
 German-speaking Mac operator listening while working, using Aqua Voice and the display Notch. Needs quick controls with minimal obstruction.
 ## Information architecture
-Native player: fixed black 180×32 capsule with Start/Pause, Stop, saved tempo, tiny actual level and always-visible settings gear. Hover never moves controls or resizes the capsule; all voice/model/language settings live in the local website. Text input is optional. Website: 100 voice options, German first, search, language and size filters, preview, use in player; current selection/download state.
+Native player: fixed black 180×32 capsule with Start/Pause, Stop, saved tempo, tiny actual level and always-visible settings gear. Hover never moves controls or resizes the capsule; all voice/model/language settings live in the local website. Text input is optional. Its footer displays the current state and a ⌘Return hint; normal Return continues to insert newlines. Website: 100 voice options, German first, search, language and size filters, preview, use in player; current selection/download state.
 ## Design principles
 One clear primary action. Native macOS materials. Prefer modest spacing and legible controls over dashboard density. Treat hover-text capture limits honestly.
 ## Visual language
@@ -22,7 +22,7 @@ Player anchors top-center just below Notch or bottom-center with clearance above
 ## Interaction states
 Idle, generating/buffering (distinct busy indicator rather than fake audio levels), playing, paused, finished, failed; selected voice downloading and ready. Preview network unavailable must show error. Never indicate ready until model validated and configuration committed.
 ## Content voice
-Short clear German labels: Hörprobe, Im Player verwenden, Lokal, Tempo. No implementation jargon in primary flow. Show model size where it affects download choice.
+Short clear German labels: Hörprobe, Im Player verwenden, Lokal, Tempo. Use compact decimal-comma rates (1×, 1,25×). Menus group reading actions, display choices and app actions; show current status and voice before actions. Use explicit anheften/lösen text for the reading-section toggle. No implementation jargon in primary flow. Show model size where it affects download choice.
 ## Implementation constraints
 AppKit Objective-C, Python local server and Piper, vanilla HTML/CSS/JS without new frontend dependencies. Bind only loopback. Protect state-changing API against cross-site requests. Validate using Codex Computer Use and real synthesis; preserve existing source/installation backups.
 ## Open questions
