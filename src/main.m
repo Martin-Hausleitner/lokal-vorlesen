@@ -180,6 +180,7 @@ static NSString *SpeedText(double value) {
 @property NSWindow *settingsWindow;
 @property WKWebView *settingsWebView;
 @property NSTimer *meterTimer;
+@property NSTimeInterval lastPlayerUse;
 @property LevelView *levelView;
 @property NSTextField *voiceLabel;
 @property NSTextField *clockLabel;
@@ -281,7 +282,6 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.dismissMonitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSEventMaskLeftMouseDown handler:^(NSEvent *event) {
         [weakSelf dismissAccessory];
     }];
-    [self openWindow:nil];
     [self record:@"ready"];
 }
 - (NSButton *)iconButton:(NSString *)symbol label:(NSString *)label action:(SEL)action {
@@ -371,6 +371,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.meterTimer = [NSTimer scheduledTimerWithTimeInterval:0.08 repeats:YES block:^(NSTimer *timer) {
         [weakSelf refreshMeter];
         [weakSelf checkHealth];
+        [weakSelf checkAutoHideAtTime:NSProcessInfo.processInfo.systemUptime mouseInside:NSPointInRect(NSEvent.mouseLocation, weakSelf.window.frame)];
         if (weakSelf.autoClipboard && NSPasteboard.generalPasteboard.changeCount != weakSelf.clipboardChange) {
             weakSelf.clipboardChange = NSPasteboard.generalPasteboard.changeCount;
             NSArray *types = NSPasteboard.generalPasteboard.types;
@@ -383,6 +384,18 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
             [weakSelf showLiveText:inside];
         } else [weakSelf showLiveText:NO];
     }];
+}
+// Reuse the existing UI tick; hidden windows never reopen from idle polling.
+- (void)checkAutoHideAtTime:(NSTimeInterval)now mouseInside:(BOOL)inside {
+    if (!self.window.visible) return;
+    BOOL editing = self.editorView && !self.editorView.hidden && self.window.isKeyWindow;
+    BOOL inUse = self.task.running || self.audioDirectory.length || editing || inside ||
+        self.controlsPopover.shown || self.showingSpeedMenu;
+    if (inUse) { self.lastPlayerUse = now; return; }
+    if (now - self.lastPlayerUse >= 3.0) {
+        [self hideWindow:nil];
+        [self record:@"auto_hidden"];
+    }
 }
 - (void)mouseEntered:(NSEvent *)event { [self showLiveText:YES]; }
 - (void)mouseExited:(NSEvent *)event { [self showLiveText:NO]; }
@@ -609,7 +622,9 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     [self.window setFrame:frame display:YES]; self.editorView.hidden = !expand;
     self.status.hidden = !expand; self.editorHintLabel.hidden = !expand;
     self.status.toolTip = self.status.stringValue;
-    [self positionWindow]; if (expand) [self.window makeFirstResponder:self.textView];
+    [self positionWindow];
+    self.lastPlayerUse = NSProcessInfo.processInfo.systemUptime;
+    if (expand) { [self openWindow:nil]; [self.window makeFirstResponder:self.textView]; }
 }
 - (void)changeMode:(id)sender {
     self.positionMode = self.modeControl.selectedSegment == 1 ? @"bottom" : @"notch";
@@ -728,6 +743,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.statusItem.menu = statusMenu;
 }
 - (void)openWindow:(id)sender {
+    self.lastPlayerUse = NSProcessInfo.processInfo.systemUptime;
     [NSApp activateIgnoringOtherApps:YES];
     [self.window makeKeyAndOrderFront:nil];
     self.permissionButton.title = AXIsProcessTrusted() ? @"Mauszugriff aktiv" : @"Mauszugriff aktivieren";
@@ -815,6 +831,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     [self record:@"stopped"];
 }
 - (void)startText:(NSString *)text {
+    self.lastPlayerUse = NSProcessInfo.processInfo.systemUptime;
     [self dismissAccessory]; [self.window orderFrontRegardless];
     NSString *usable = UsableText(text);
     if (!usable) { self.status.stringValue = @"Bitte Text eingeben (maximal 100.000 Zeichen)."; return; }

@@ -27,3 +27,8 @@ Short clear German labels: Hörprobe, Im Player verwenden, Lokal, Tempo. Use com
 AppKit Objective-C, Python local server and Piper, vanilla HTML/CSS/JS without new frontend dependencies. Bind only loopback. Protect state-changing API against cross-site requests. Validate using Codex Computer Use and real synthesis; preserve existing source/installation backups.
 ## Open questions
 User clarified all languages, ready-made samples, downloadable higher-quality models. German first, 100 actual samples. Latest screenshot rejects former 448×164 panel as too large. Subsequent user requests require the existing 180×32 footprint and simpler, clearer UI/UX. No unresolved design-critical questions; current section display follows buffer boundaries, not word timestamps.
+
+
+## Automatisches Ausblenden
+
+Start ohne sichtbare Leiste. Nach drei Sekunden Leerlauf ausblenden; aktive Wiedergabe/Pufferung/Pause, Maus über der Leiste, offene Einstellungs- oder Tempomenüs und fokussierte Texteingabe bleiben sichtbar. Versteckte Leiste öffnet sich nur bei Nutzeraktion oder Vorleseauftrag. Ein aufgeklappter Editor ohne Fokus verhindert das Ausblenden nicht.

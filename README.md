@@ -36,6 +36,8 @@ Dies ist ein lokales Open-Source-Projekt, kein notarisiertes App-Store-Paket.
 
 ## Bedienung
 
+Die Leiste startet ausgeblendet und verschwindet nach drei Sekunden ohne Nutzung. Beim Vorleseauftrag erscheint sie automatisch. Wiedergabe, Pufferung, Pause, offene Einstellungen, Maus über der Leiste und aktive Texteingabe halten sie sichtbar. Über das ▶︎-Menüleistensymbol → **Generate Audio** oder **App-Menü → Player öffnen** lässt sie sich jederzeit zurückholen; **⌘E** öffnet die Texteingabe.
+
 - Text markieren und **Rechtsklick → Dienste → Generate Audio** wählen.
 - Mit freigegebener Bedienungshilfe kann die App lesbaren Text am Mauszeiger erfassen und eine eigene **Generate Audio**-Schaltfläche anbieten. Fremde Kontextmenüs bleiben erhalten.
 - Die schwarze **180 × 32 Pixel** große Leiste zeigt Start/Pause, Stopp, anklickbares Tempo, einen kleinen Audiopegel und ein dauerhaft erreichbares Zahnrad. Die Schaltflächen bleiben auch beim Darüberfahren an ihrem Platz. Das Tempo von **0,5× bis 4×** bleibt gespeichert. Auf dem Tempo scrollen ändert es in Viertelschritten; Klick öffnet die Auswahl. Scrollen daneben spult innerhalb der bereits erzeugten Audiopuffer vor oder zurück. Beim Darüberfahren erscheint der gerade gesprochene Textabschnitt. **⌘T** oder **Lesetext anzeigen** in den Einstellungen hält ihn während der Wiedergabe und bei Pause sichtbar; erneutes Umschalten blendet ihn wieder aus. Die Textanzeige folgt den Audiopuffern, nicht einzelnen wortgenauen Zeitmarken.
