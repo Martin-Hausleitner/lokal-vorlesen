@@ -1,0 +1,653 @@
+{
+  "schema_version": 1,
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "versions": {
+    "python": "3.12.12 (main, Oct  9 2025, 11:07:00) [Clang 17.0.0 (clang-1700.4.4.1)]",
+    "piper": "1.8.0",
+    "onnxruntime": "1.30.0"
+  },
+  "scope": "Private stdin/stdout worker backend only. Startup includes process launch and model readiness. Requests are sequential in the same process; disk caches uncontrolled. No GUI, OCR or audible-playback measurement.",
+  "model_sha256": "264f5b1d689355b0e0bb37ea6a4cd019e737955e1748138d251c2de139293a89",
+  "config_sha256": "df38e892ed949f62d0c40978bc666de0b341c5f7921840ae7c72f4df8e8ffa05",
+  "worker_sha256": "74c770ce0289c90ee5d9b009368584bfe7ebedf2b544fe7f95976e77554aa3a1",
+  "synthesis_sha256": "533e0cae5d1149dfc219be5d63fb48ccab4e0a0c078dab13319b77f66aea7674",
+  "benchmark_sha256": "660429624449cdbaa776995670274078e675d3218318040d604e02e2c3d4145b",
+  "text": "Dieser Test misst die lokale Sprachausgabe. Der erste Puffer soll schnell bereitstehen.",
+  "timeout_seconds": 30.0,
+  "poll_interval_seconds": 0.005,
+  "p95_method": "nearest-rank, successful samples only",
+  "samples": [
+    {
+      "run": 1,
+      "first_buffer_seconds": 0.31421129199588904,
+      "completion_seconds": 0.5092544579965761,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 1.3249556250011665,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "0"
+      }
+    },
+    {
+      "run": 2,
+      "first_buffer_seconds": 0.1860778330010362,
+      "completion_seconds": 0.38740537500416394,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 1.706811916003062,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "1"
+      }
+    },
+    {
+      "run": 3,
+      "first_buffer_seconds": 0.19892320899816696,
+      "completion_seconds": 0.42978420900180936,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 2.107406000002811,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "2"
+      }
+    },
+    {
+      "run": 4,
+      "first_buffer_seconds": 0.20673633399565006,
+      "completion_seconds": 0.3976713340016431,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 2.545833500000299,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "3"
+      }
+    },
+    {
+      "run": 5,
+      "first_buffer_seconds": 0.23533437500009313,
+      "completion_seconds": 0.44841454199922737,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 2.972650458003045,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "4"
+      }
+    },
+    {
+      "run": 6,
+      "first_buffer_seconds": 0.21151212500262773,
+      "completion_seconds": 0.4301081660014461,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 3.3986128750038915,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "5"
+      }
+    },
+    {
+      "run": 7,
+      "first_buffer_seconds": 0.22237433299596887,
+      "completion_seconds": 0.3928204999974696,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 3.840822416001174,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "6"
+      }
+    },
+    {
+      "run": 8,
+      "first_buffer_seconds": 0.18923741600156063,
+      "completion_seconds": 0.36297333300171886,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 4.200893291003013,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "7"
+      }
+    },
+    {
+      "run": 9,
+      "first_buffer_seconds": 0.21251104100520024,
+      "completion_seconds": 0.3792036660015583,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 4.587431666004704,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "8"
+      }
+    },
+    {
+      "run": 10,
+      "first_buffer_seconds": 0.20008750000124564,
+      "completion_seconds": 0.3630645830053254,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 4.954528000002028,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "9"
+      }
+    },
+    {
+      "run": 11,
+      "first_buffer_seconds": 0.18587324999680277,
+      "completion_seconds": 0.3902975829987554,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 5.303791833001014,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "10"
+      }
+    },
+    {
+      "run": 12,
+      "first_buffer_seconds": 0.23344204199383967,
+      "completion_seconds": 0.4319680829939898,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 5.742293625000457,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "11"
+      }
+    },
+    {
+      "run": 13,
+      "first_buffer_seconds": 0.20179841699427925,
+      "completion_seconds": 0.3839806670002872,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 6.142953624999791,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "12"
+      }
+    },
+    {
+      "run": 14,
+      "first_buffer_seconds": 0.21952483300265158,
+      "completion_seconds": 0.37009779200161574,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 6.544959041006223,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "13"
+      }
+    },
+    {
+      "run": 15,
+      "first_buffer_seconds": 0.22025104200292844,
+      "completion_seconds": 0.3992252500029281,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 6.916099958005361,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "14"
+      }
+    },
+    {
+      "run": 16,
+      "first_buffer_seconds": 0.21146254199993564,
+      "completion_seconds": 0.38315158399927896,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 7.306837208001525,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "15"
+      }
+    },
+    {
+      "run": 17,
+      "first_buffer_seconds": 0.19802462499501416,
+      "completion_seconds": 0.4244911249988945,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 7.676934082999651,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "16"
+      }
+    },
+    {
+      "run": 18,
+      "first_buffer_seconds": 0.25052462500025285,
+      "completion_seconds": 0.4380112500002724,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 8.154508583000279,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "17"
+      }
+    },
+    {
+      "run": 19,
+      "first_buffer_seconds": 0.21099104099994292,
+      "completion_seconds": 0.4033297499991022,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 8.553335291006078,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "18"
+      }
+    },
+    {
+      "run": 20,
+      "first_buffer_seconds": 0.20108574999903794,
+      "completion_seconds": 0.39538462500058813,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 8.94719058299961,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "19"
+      }
+    },
+    {
+      "run": 21,
+      "first_buffer_seconds": 0.22812470800272422,
+      "completion_seconds": 0.4124167080008192,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 9.369886333006434,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "20"
+      }
+    },
+    {
+      "run": 22,
+      "first_buffer_seconds": 0.1999729590024799,
+      "completion_seconds": 0.37399679199734237,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 9.75456437500543,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "21"
+      }
+    },
+    {
+      "run": 23,
+      "first_buffer_seconds": 0.22342399999615736,
+      "completion_seconds": 0.390719540999271,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 10.15229625000211,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "22"
+      }
+    },
+    {
+      "run": 24,
+      "first_buffer_seconds": 0.20759020799596328,
+      "completion_seconds": 0.3642554999969434,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 10.527595833002124,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "23"
+      }
+    },
+    {
+      "run": 25,
+      "first_buffer_seconds": 0.197497041997849,
+      "completion_seconds": 0.40267745799792465,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 10.882056125003146,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "24"
+      }
+    },
+    {
+      "run": 26,
+      "first_buffer_seconds": 0.17906316700100433,
+      "completion_seconds": 0.3825955420034006,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 11.266697375001968,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "25"
+      }
+    },
+    {
+      "run": 27,
+      "first_buffer_seconds": 0.18163179199473234,
+      "completion_seconds": 0.8618869999991148,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 11.652282208000543,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "26"
+      }
+    },
+    {
+      "run": 28,
+      "first_buffer_seconds": 0.1766444169988972,
+      "completion_seconds": 0.355421166997985,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 12.509927833001711,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "27"
+      }
+    },
+    {
+      "run": 29,
+      "first_buffer_seconds": 0.18352145800599828,
+      "completion_seconds": 0.37913062500592787,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 12.872585291006544,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "28"
+      }
+    },
+    {
+      "run": 30,
+      "first_buffer_seconds": 0.16926283299835632,
+      "completion_seconds": 0.35898779099807143,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 13.237892458004353,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "29"
+      }
+    },
+    {
+      "run": 31,
+      "first_buffer_seconds": 0.19823279199772514,
+      "completion_seconds": 0.37784191699756775,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 13.626204457999847,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "30"
+      }
+    },
+    {
+      "run": 32,
+      "first_buffer_seconds": 0.19428545899427263,
+      "completion_seconds": 0.3493339169945102,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 14.000391875000787,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "31"
+      }
+    },
+    {
+      "run": 33,
+      "first_buffer_seconds": 0.20383374999801163,
+      "completion_seconds": 0.39274699999805307,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 14.363619166004355,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "32"
+      }
+    },
+    {
+      "run": 34,
+      "first_buffer_seconds": 0.2039897920039948,
+      "completion_seconds": 0.39708558400161564,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 14.756795833003707,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "33"
+      }
+    },
+    {
+      "run": 35,
+      "first_buffer_seconds": 0.21811041700129863,
+      "completion_seconds": 0.40766791699570604,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 15.168272375005472,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "34"
+      }
+    },
+    {
+      "run": 36,
+      "first_buffer_seconds": 0.1833905000021332,
+      "completion_seconds": 0.37526050000451505,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 15.541562500002328,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "35"
+      }
+    },
+    {
+      "run": 37,
+      "first_buffer_seconds": 0.2059902500041062,
+      "completion_seconds": 0.4237657920020865,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 15.939872166003624,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "36"
+      }
+    },
+    {
+      "run": 38,
+      "first_buffer_seconds": 0.1524327080041985,
+      "completion_seconds": 0.3308939580019796,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 16.310384041004,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "37"
+      }
+    },
+    {
+      "run": 39,
+      "first_buffer_seconds": 0.3482522499980405,
+      "completion_seconds": 0.509069499996258,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 16.8374145830021,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "38"
+      }
+    },
+    {
+      "run": 40,
+      "first_buffer_seconds": 0.2066349579981761,
+      "completion_seconds": 0.4045485419992474,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 17.205210291002004,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "39"
+      }
+    },
+    {
+      "run": 41,
+      "first_buffer_seconds": 0.1804484579988639,
+      "completion_seconds": 0.3662627910016454,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 17.58386395800335,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "40"
+      }
+    },
+    {
+      "run": 42,
+      "first_buffer_seconds": 0.20501279100426473,
+      "completion_seconds": 0.38813875000050757,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 17.97497429100622,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "41"
+      }
+    },
+    {
+      "run": 43,
+      "first_buffer_seconds": 0.18639620800240664,
+      "completion_seconds": 0.3750658749995637,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 18.344798166006512,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "42"
+      }
+    },
+    {
+      "run": 44,
+      "first_buffer_seconds": 0.1985471250009141,
+      "completion_seconds": 0.4244871249975404,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 18.73231475000648,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "43"
+      }
+    },
+    {
+      "run": 45,
+      "first_buffer_seconds": 0.2161343339976156,
+      "completion_seconds": 0.39067308400262846,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 19.17469287499989,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "44"
+      }
+    },
+    {
+      "run": 46,
+      "first_buffer_seconds": 0.18688020800618688,
+      "completion_seconds": 0.39218650000111666,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 19.536460416005866,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "45"
+      }
+    },
+    {
+      "run": 47,
+      "first_buffer_seconds": 0.2154121249986929,
+      "completion_seconds": 0.42310387500037905,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 19.957441083002777,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "46"
+      }
+    },
+    {
+      "run": 48,
+      "first_buffer_seconds": 0.24017687500600005,
+      "completion_seconds": 0.4269415000017034,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 20.405601000005845,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "47"
+      }
+    },
+    {
+      "run": 49,
+      "first_buffer_seconds": 0.21148741700017126,
+      "completion_seconds": 0.40517083399754483,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 20.80419433300267,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "48"
+      }
+    },
+    {
+      "run": 50,
+      "first_buffer_seconds": 0.246884708001744,
+      "completion_seconds": 0.504620874999091,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 21.245233958004974,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "49"
+      }
+    }
+  ],
+  "startup_seconds": 1.010566208002274,
+  "ready": true,
+  "launch_to_first_buffer_seconds": 1.3249556250011665,
+  "rss_kib_after_requests": 139824,
+  "stderr_excerpt": "",
+  "summary": {
+    "first_request_after_ready": {
+      "first_buffer_seconds": {
+        "n": 1,
+        "median": 0.31421129199588904,
+        "p95": 0.31421129199588904
+      },
+      "completion_seconds": {
+        "n": 1,
+        "median": 0.5092544579965761,
+        "p95": 0.5092544579965761
+      }
+    },
+    "subsequent_requests": {
+      "first_buffer_seconds": {
+        "n": 49,
+        "median": 0.2039897920039948,
+        "p95": 0.246884708001744
+      },
+      "completion_seconds": {
+        "n": 49,
+        "median": 0.39274699999805307,
+        "p95": 0.504620874999091
+      }
+    }
+  },
+  "ok": true
+}

@@ -6,6 +6,11 @@
 @end
 @implementation TestVisibilityWindow
 @end
+@interface TestVisibilityPopover : NSObject
+@property(getter=isShown) BOOL shown;
+@end
+@implementation TestVisibilityPopover
+@end
 int main(void) {
  @autoreleasepool {
     AudioApp *app = [AudioApp new];
@@ -24,7 +29,15 @@ int main(void) {
     if ([app shouldShowLiveText:NO] || ![app shouldShowLiveText:YES]) return 5;
     app.audioDirectory = nil;
     if ([app shouldShowLiveText:YES]) return 6;
-    printf("PASS: reading section supports pinned/paused visibility and hides for idle, hidden player, and cleared playback.\n");
+    app.audioDirectory = @"test-fixture"; app.readingTextPinned = YES;
+    TestVisibilityPopover *popover = [TestVisibilityPopover new]; popover.shown = YES;
+    app.controlsPopover = (NSPopover *)(id)popover;
+    if ([app shouldShowLiveText:YES]) return 7;
+    popover.shown = NO; app.showingSpeedMenu = YES;
+    if ([app shouldShowLiveText:YES]) return 8;
+    app.showingSpeedMenu = NO;
+    if (![app shouldShowLiveText:NO]) return 9;
+    printf("PASS: reading text hides for idle, hidden player and settings/tempo overlays, then restores its pinned state.\n");
  }
  return 0;
 }

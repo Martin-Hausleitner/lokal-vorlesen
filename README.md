@@ -2,6 +2,22 @@
 
 Kleine lokale Sprachausgabe für macOS: 180 × 32 Pixel, deutsche Standardstimme, gepufferte Erzeugung, lokale OCR und eine Galerie mit 100 fertigen Hörproben.
 
+## Echte App-Aufnahmen
+
+Über Codex Computer Use am installierten Player aufgenommen, keine Mockups.
+
+**Mini-Player**
+
+![Mini-Player bei 2,5×](docs/screenshots/mini-player.png)
+
+**Texteingabe**
+
+![Texteingabe mit lokalem Beispieltext](docs/screenshots/text-editor.png)
+
+**Stimmen-Galerie**
+
+![Lokale Stimmen-Galerie mit Thorsten, Karlsson und Kerstin](docs/screenshots/voice-gallery.png)
+
 ## Schnellstart
 
 Voraussetzungen: Apple Silicon (hier geprüft), aktuelle Xcode Command Line Tools, `uv`; macOS 13 oder neuer für den Player und **macOS 15.2 oder neuer für OCR**.
@@ -22,8 +38,8 @@ Dies ist ein lokales Open-Source-Projekt, kein notarisiertes App-Store-Paket.
 
 - Text markieren und **Rechtsklick → Dienste → Generate Audio** wählen.
 - Mit freigegebener Bedienungshilfe kann die App lesbaren Text am Mauszeiger erfassen und eine eigene **Generate Audio**-Schaltfläche anbieten. Fremde Kontextmenüs bleiben erhalten.
-- Die schwarze **180 × 32 Pixel** große Leiste zeigt Start/Pause, Stopp, anklickbares Tempo, einen kleinen Audiopegel und ein dauerhaft erreichbares Zahnrad. Die Schaltflächen bleiben auch beim Darüberfahren an ihrem Platz. Das Tempo von **0,5× bis 4×** bleibt gespeichert. Auf dem Tempo scrollen ändert es in Viertelschritten; Klick öffnet die Auswahl. Scrollen daneben spult innerhalb der bereits erzeugten Audiopuffer vor oder zurück. Beim Darüberfahren erscheint der gerade gesprochene Textabschnitt. **⌘T** oder **Lesetext anheften** im Menü hält ihn während der Wiedergabe und bei Pause sichtbar; **Lesetext lösen** beendet das Anheften. Die Textanzeige folgt den Audiopuffern, nicht einzelnen wortgenauen Zeitmarken.
-- Im Zahnrad-Menü **Oben an der Notch / Unten über Aqua** wählen. Der Pegel reagiert auf das abgespielte Audio.
+- Die schwarze **180 × 32 Pixel** große Leiste zeigt Start/Pause, Stopp, anklickbares Tempo, einen kleinen Audiopegel und ein dauerhaft erreichbares Zahnrad. Die Schaltflächen bleiben auch beim Darüberfahren an ihrem Platz. Das Tempo von **0,5× bis 4×** bleibt gespeichert. Auf dem Tempo scrollen ändert es in Viertelschritten; Klick öffnet die Auswahl. Scrollen daneben spult innerhalb der bereits erzeugten Audiopuffer vor oder zurück. Beim Darüberfahren erscheint der gerade gesprochene Textabschnitt. **⌘T** oder **Lesetext anzeigen** in den Einstellungen hält ihn während der Wiedergabe und bei Pause sichtbar; erneutes Umschalten blendet ihn wieder aus. Die Textanzeige folgt den Audiopuffern, nicht einzelnen wortgenauen Zeitmarken.
+- In den Einstellungen unter **Position → Oben / Unten** wählen. Der Pegel reagiert auf das abgespielte Audio.
 - **⌘E** oder **App-Menü → Text eingeben / Texteingabe schließen** klappt das Eingabefeld auf und wieder zu, auch ohne Hover. **Zahnrad → Text eingeben** bietet denselben Weg. **Stimmen & Modelle** öffnet die lokale Hörproben-Galerie in einem eigenen App-Fenster. Alternativ **⌘,** drücken. Im geöffneten Textfeld startet **⌘↩** das Vorlesen und schaltet anschließend zwischen Pause und Fortsetzen um; **↩** allein bleibt ein Zeilenumbruch. Der Fußbereich zeigt den aktuellen Zustand.
 - **⌃⌥⌘K** liest die aktuelle Markierung direkt über Bedienungshilfen, ohne Kopieren und ohne vorherigen Fokuswechsel. Die hintere Maustaste wird im Aqua-/OpenLogi-Chat auf diesen Shortcut abgestimmt.
 - **⌃⌥⌘O** startet die Bereichsauswahl: Rechteck ziehen, loslassen, lokal per Apple Vision erkennen und vorlesen. Escape bricht ab. Bei fehlender Markierung öffnet **⌃⌥⌘K** ebenfalls die Bereichsauswahl. Bildschirmaufnahme muss für die App erlaubt sein. Bilder werden nicht hochgeladen oder dauerhaft gespeichert.
@@ -54,7 +70,7 @@ Die wiederverwendete Sprachengine benötigt zusätzlichen Arbeitsspeicher, solan
 
 Die aktive Erzeugung/Wiedergabe wird als zeitkritische Nutzeraktivität angemeldet; der Syntheseprozess verwendet User-Initiated-QoS. Es werden keine globalen Systemeinstellungen oder fremden Prozesse verändert.
 
-Wenn vor dem ersten Audiopuffer 30 Sekunden lang keine Ausgabe startet, wird ausschließlich dieser Syntheseauftrag einmal neu gestartet. Zwischen automatischen Versuchen liegen mindestens 120 Sekunden. Hängt auch der Wiederholungsversuch, wird der Auftrag beendet. Laufendes oder pausiertes Audio und eine OCR-Auswahl werden nicht dafür abgebrochen. Ein beendeter Galerieprozess darf höchstens dreimal pro App-Sitzung mit jeweils mindestens 60 Sekunden Abstand neu starten. Ein blockierter macOS-Hauptthread oder ein Hardwarefehler wird damit nicht vollständig überwacht.
+Wenn vor dem ersten Audiopuffer 30 Sekunden lang keine Ausgabe startet, wird ausschließlich dieser Syntheseauftrag einmal neu gestartet. Zwischen automatischen Versuchen liegen mindestens 120 Sekunden. Hängt auch der Wiederholungsversuch oder ist die Wiederanlauf-Sperrzeit noch aktiv, wird der Auftrag mit einer Fehlermeldung beendet. Auch ein späterer Pufferstillstand von 30 Sekunden endet kontrolliert; bereits gehörter Text wird dabei nicht automatisch wiederholt. Laufendes oder pausiertes Audio und eine OCR-Auswahl werden nicht dafür abgebrochen. Ein beendeter Galerieprozess darf höchstens dreimal pro App-Sitzung mit jeweils mindestens 60 Sekunden Abstand neu starten. Beim Beenden bekommen verbliebene Kindprozesse zwei Sekunden für einen normalen Abbruch, anschließend werden sie nötigenfalls erzwungen beendet. Ein blockierter macOS-Hauptthread oder ein Hardwarefehler wird damit nicht vollständig überwacht.
 
 ## Entwicklung
 
@@ -100,6 +116,23 @@ Die installierte Version wurde über Codex Computer Use auf Zahnradmenü, Eingab
 
 ### Klarere Eingabe und Menüs
 
-Die Tempoanzeige nutzt jetzt kurze deutsche Werte wie **1×**, **1,25×** und **4×**. Das Zahnradmenü zeigt Status und Stimme vor den gruppierten Aktionen. Stopp ist im Leerlauf deaktiviert. Das Textfeld enthält eine sichtbare Statuszeile und den Hinweis auf **⌘↩**. Lange Statusmeldungen sind zusätzlich vollständig als Tooltip zugänglich.
+Die Tempoanzeige nutzt jetzt kurze deutsche Werte wie **1×**, **1,25×** und **4×**. Das Zahnrad öffnet ein kompaktes Einstellungsfenster mit Status, Stimme, Vorleseaktionen und Position Oben/Unten. Stopp ist im Leerlauf deaktiviert. Das Textfeld enthält eine sichtbare Statuszeile und den Hinweis auf **⌘↩**. Lange Statusmeldungen sind zusätzlich vollständig als Tooltip zugänglich.
 
 Am 27.09.2026 wurde der installierte Build über Codex Computer Use geprüft: sichtbarer Footer, normaler Zeilenumbruch mit Return, Start und sofortige Pufferpause mit ⌘Return bei 0,5×, Stopp, Rückkehr zu 4× und Einklappen mit ⌘E. Die bestehende Test-Suite und der Build bestanden ebenfalls.
+
+### Ausfallsicherheit
+
+Die zusätzlichen Fehlerprüfungen verwenden echte isolierte Kindprozesse für beschädigte oder abgeschnittene Protokollantworten, abruptes Prozessende, geschlossene Ausgabe und übergroße Antworten. Veraltete Abschlussmeldungen dürfen einen neuen Auftrag nicht beenden. Ein blockierter Prozess zwischen Audiopuffern wird ohne Blockierung des Aufrufers beendet; verspäteter Abschluss nach bereits fertiger Wiedergabe darf den Text nicht erneut starten.
+
+Fünf zusätzliche Downloadtests prüfen mit lokalen Netzwerk- und Engine-Ersatzobjekten: Verbindungsabbruch, unvollständige Datei, falsche Prüfsumme, gleichzeitige Auswahl, Beenden während Download/Modellprüfung und einen erfolgreichen erneuten Versuch. Die vorhandene Stimmwahl bleibt bei Fehlern erhalten. Diese Tests sind keine Prüfung aller Stimmen oder physischer Maustasten.
+
+
+### Opus-QA und aktuelle Abnahme
+
+Das frühere abgeschnittene Zahnradmenü wurde nach einer unabhängigen Opus-Prüfung durch ein gruppiertes Einstellungs-Popover ersetzt. Beenden bleibt im App-Menü; das Zahnrad sitzt auch bei aufgeklappter Eingabe rechts. Das Tempomenü wird an die sichtbaren Bildschirmgrenzen angepasst.
+
+Opus 5.5 bewertet den Code nach der Korrektur als **PASS**. Die anschließende Computer-Use-Prüfung bestätigte zweiter Zahnrad-Klick → geschlossen, Escape → geschlossen sowie den gespeicherten Wechsel nach Unten. Am installierten Build wurden bei 2,5× erfolgreiche Wiedergaben bis zum Abschluss, Pause, Stopp und das Öffnen der Stimmengalerie beobachtet. Beide macOS-Freigaben passen zur installierten Signatur.
+
+**Visuelles Gate noch offen:** Der verfügbare Mac-Aufnahmeweg erfasst das Elternfenster, nicht das separate Popover. Native Screenshot-App-Versuche endeten mit einem Tool-Timeout. Daher sind die vollständige Popoverdarstellung, alle Tempoeinträge an beiden Bildschirmkanten und das Schließen durch einen echten Klick in eine andere App noch nicht abschließend bestätigt. Die drei obigen Bilder zeigen tatsächlich erfasste App-Fenster. Es wird keine vollständige Hardware-E2E-Abnahme behauptet.
+
+Nachweise: [Fehlertests und 50er-Lauf](docs/validation/README.md), [Opus vorher](docs/validation/opus-ui-qa-before.md), [Opus nachher](docs/validation/opus-ui-qa-after.md).

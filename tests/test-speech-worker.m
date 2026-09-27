@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import "../src/LVSpeechWorker.h"
+#include <signal.h>
 static BOOL Await(BOOL (^condition)(void), double seconds) {
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:seconds];
     while (!condition() && deadline.timeIntervalSinceNow > 0) {
@@ -9,6 +10,7 @@ static BOOL Await(BOOL (^condition)(void), double seconds) {
 }
 int main(int argc, const char **argv) {
  @autoreleasepool {
+    signal(SIGPIPE, SIG_IGN);
     if (argc != 4) return 90;
     NSString *python = @(argv[1]), *script = @(argv[2]), *model = @(argv[3]);
     NSError *error = nil;

@@ -79,6 +79,8 @@ class Library:
         try:
             if voice.get('is_default'):
                 with self.lock:
+                    if self.stopping:
+                        raise RuntimeError('Stopping')
                     config = self.config()
                     config.update(voice_id=voice_id, name=voice['name'], speaker=voice.get('speaker', 0))
                     config.pop('model_path', None)
@@ -148,6 +150,8 @@ class Library:
                                            providers=['CPUExecutionProvider'])
             del session
             with self.lock:
+                if self.stopping:
+                    raise RuntimeError('Stopping')
                 config = self.config()
                 config.update(voice_id=voice_id, name=voice['name'],
                               model_path=str(directory / 'model.onnx'), speaker=voice.get('speaker', 0))

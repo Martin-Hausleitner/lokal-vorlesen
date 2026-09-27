@@ -1,0 +1,20 @@
+PASS: buffering pause blocks auto-start; resume requests buffer playback.
+PASS: cancelled OCR cannot start stale speech; current result starts once.
+PASS: first-buffer retry is bounded; later gaps, cooldown and missing text fail closed; active/paused audio and short gaps are preserved.
+PASS: same-buffer seek preserves the player and adjusts only position.
+PASS: late completion clears matching generation after playback ends without touching a replacement.
+PASS: reading text hides for idle, hidden player and settings/tempo overlays, then restores its pinned state.
+PASS: app shutdown terminates SIGTERM-ignoring gallery in 2.07s.
+PASS: later-buffer timeout cancels a real SIGTERM-ignoring worker without blocking caller; child exits and callback/ownership cleanup completes once.
+.......
+----------------------------------------------------------------------
+Ran 7 tests in 0.147s
+
+OK
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 0.170s
+
+OK
+PASS: 5 real protocol/exit faults fail once; stale completion cannot finish a replacement.
+PASS: native worker reuses PID, rejects changed voice, cancels promptly, completes once and exits.

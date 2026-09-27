@@ -14,6 +14,14 @@ static NSString *Resource(NSString *name) {
 static void RemoveDirectory(NSString *path) {
     if (path.length) [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
 }
+static void TerminateAndWait(NSTask *task) {
+    if (!task.running) return;
+    [task terminate];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC), dispatch_get_global_queue(QOS_CLASS_UTILITY, 0), ^{
+        if (task.running) kill(task.processIdentifier, SIGKILL);
+    });
+    [task waitUntilExit];
+}
 static NSString *RuntimePython(void) {
     return [[NSString stringWithContentsOfFile:Resource(@"runtime-path.txt") encoding:NSUTF8StringEncoding error:nil]
         stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
@@ -179,6 +187,8 @@ static NSString *SpeedText(double value) {
 @property NSButton *editButton;
 @property NSButton *playButton;
 @property NSButton *settingsButton;
+@property NSPopover *controlsPopover;
+@property BOOL showingSpeedMenu;
 @property NSButton *speedButton;
 @property OCRSelection *ocrSelection;
 @property NSUInteger ocrGeneration;
@@ -300,7 +310,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     NSTrackingArea *tracking = [[NSTrackingArea alloc] initWithRect:NSZeroRect options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect owner:self userInfo:nil];
     [surface addTrackingArea:tracking];
     NSView *controls = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 180, 32)];
-    controls.autoresizingMask = NSViewMinYMargin; [surface addSubview:controls];
+    controls.autoresizingMask = NSViewMinYMargin | NSViewWidthSizable; [surface addSubview:controls];
     self.levelView = [[LevelView alloc] initWithFrame:NSMakeRect(9, 9, 18, 14)];
     self.levelView.accessibilityLabel = @"Audiopegel"; [controls addSubview:self.levelView];
     self.playButton = [self iconButton:@"play.fill" label:@"Start" action:@selector(primaryAction:)];
@@ -322,6 +332,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.speedButton.accessibilityLabel = @"Tempo wählen"; [controls addSubview:self.speedButton];
     self.settingsButton = [self iconButton:@"gearshape" label:@"Einstellungen" action:@selector(showSettings:)];
     self.settingsButton.frame = NSMakeRect(149, 4, 24, 24); self.settingsButton.hidden = NO;
+    self.settingsButton.autoresizingMask = NSViewMinXMargin;
     [controls addSubview:self.settingsButton];
     self.bufferIndicator = [[NSProgressIndicator alloc] initWithFrame:NSMakeRect(10, 8, 16, 16)];
     self.bufferIndicator.style = NSProgressIndicatorStyleSpinning;
@@ -399,13 +410,23 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     } else if (!self.task.running) [self generate:nil];
 }
 - (void)showSpeed:(id)sender {
+    [self.controlsPopover close]; [self.textPanel orderOut:nil];
     NSMenu *menu = [[NSMenu alloc] init];
     for (NSNumber *value in @[@0.5, @0.75, @1, @1.25, @1.5, @1.75, @2, @2.5, @3, @3.5, @4]) {
         NSMenuItem *item = [menu addItemWithTitle:SpeedText(value.doubleValue) action:@selector(chooseSpeed:) keyEquivalent:@""];
         item.target = self; item.tag = (NSInteger)(value.doubleValue * 100);
         item.state = fabs(value.doubleValue - self.speed.doubleValue) < 0.01 ? NSControlStateValueOn : NSControlStateValueOff;
     }
-    [menu popUpMenuPositioningItem:nil atLocation:NSZeroPoint inView:self.speedButton];
+    [menu update];
+    NSRect anchor = [self.window convertRectToScreen:[self.speedButton convertRect:self.speedButton.bounds toView:nil]];
+    NSRect visible = (self.window.screen ?: NSScreen.mainScreen).visibleFrame;
+    NSSize size = menu.size;
+    CGFloat top = [self.positionMode isEqual:@"bottom"] ? NSMaxY(anchor) + size.height + 6 : NSMinY(anchor) - 6;
+    top = fmin(NSMaxY(visible) - 8, fmax(NSMinY(visible) + size.height + 8, top));
+    CGFloat left = fmin(NSMaxX(visible) - size.width - 8, fmax(NSMinX(visible) + 8, NSMinX(anchor)));
+    self.showingSpeedMenu = YES;
+    [menu popUpMenuPositioningItem:nil atLocation:NSMakePoint(left, top) inView:nil];
+    self.showingSpeedMenu = NO;
 }
 - (void)chooseSpeed:(NSMenuItem *)sender { self.speed.doubleValue = sender.tag / 100.0; [self changeSpeed:nil]; }
 - (void)handleScroll:(NSEvent *)event {
@@ -436,7 +457,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.currentChunkText = [item[@"text"] isKindOfClass:NSString.class] ? item[@"text"] : nil;
 }
 - (BOOL)shouldShowLiveText:(BOOL)hovered {
-    return self.window.visible && (hovered || self.readingTextPinned) && self.currentChunkText.length && self.audioDirectory.length;
+    return self.window.visible && !self.controlsPopover.shown && !self.showingSpeedMenu && (hovered || self.readingTextPinned) && self.currentChunkText.length && self.audioDirectory.length;
 }
 - (void)showLiveText:(BOOL)hovered {
     if (![self shouldShowLiveText:hovered]) { [self.textPanel orderOut:nil]; return; }
@@ -490,33 +511,75 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
         [self record:@"seeked"]; break;
     }
 }
+- (NSButton *)settingsActionButton:(NSString *)title tag:(NSInteger)tag frame:(NSRect)frame inView:(NSView *)view {
+    NSButton *button = [NSButton buttonWithTitle:title target:self action:@selector(settingsAction:)];
+    button.tag = tag; button.frame = frame; button.bezelStyle = NSBezelStyleRounded;
+    button.font = [NSFont systemFontOfSize:12]; button.accessibilityLabel = title;
+    [view addSubview:button]; return button;
+}
+- (void)settingsAction:(NSButton *)sender {
+    [self.controlsPopover close];
+    switch (sender.tag) {
+        case 0: [self toggleEditor:nil]; break;
+        case 1: [self ocrAudio:nil]; break;
+        case 2: [self clipboardAudio:nil]; break;
+        case 3: [self openVoices:nil]; break;
+        case 4: [self requestPermission:nil]; break;
+        case 5: [self hideWindow:nil]; break;
+    }
+}
+- (void)popupReadingChanged:(NSButton *)sender {
+    [self toggleReadingText:sender]; sender.state = self.readingTextPinned ? NSControlStateValueOn : NSControlStateValueOff;
+}
+- (void)popupClipboardChanged:(NSButton *)sender {
+    [self toggleAutoClipboard:sender]; sender.state = self.autoClipboard ? NSControlStateValueOn : NSControlStateValueOff;
+}
+- (void)popupPositionChanged:(NSSegmentedControl *)sender {
+    NSString *mode = sender.selectedSegment == 1 ? @"bottom" : @"notch";
+    [self.controlsPopover close]; [self applyMode:mode];
+}
 - (void)showSettings:(id)sender {
-    NSMenu *menu = [[NSMenu alloc] initWithTitle:@"Einstellungen"];
-    menu.autoenablesItems = YES;
-    NSMenuItem *status = [menu addItemWithTitle:[NSString stringWithFormat:@"Status: %@", self.status.stringValue ?: @"Bereit"] action:nil keyEquivalent:@""];
-    status.enabled = NO;
-    NSString *voice = self.voiceLabel.stringValue.length ? self.voiceLabel.stringValue : @"Thorsten · Deutsch";
-    NSMenuItem *voiceItem = [menu addItemWithTitle:[NSString stringWithFormat:@"Stimme: %@", voice] action:nil keyEquivalent:@""];
-    voiceItem.enabled = NO;
-    [menu addItem:NSMenuItem.separatorItem];
-    NSMenuItem *primary = [menu addItemWithTitle:@"Vorlesen / Pause" action:@selector(primaryAction:) keyEquivalent:@"\r"];
-    primary.target = self; primary.keyEquivalentModifierMask = NSEventModifierFlagCommand;
-    [menu addItemWithTitle:@"Bereich vorlesen…" action:@selector(ocrAudio:) keyEquivalent:@""].target = self;
-    [menu addItemWithTitle:@"Zwischenablage vorlesen" action:@selector(clipboardAudio:) keyEquivalent:@""].target = self;
-    NSMenuItem *automatic = [menu addItemWithTitle:@"Kopiertes automatisch vorlesen" action:@selector(toggleAutoClipboard:) keyEquivalent:@""];
-    automatic.target = self; automatic.state = self.autoClipboard ? NSControlStateValueOn : NSControlStateValueOff;
-    [menu addItemWithTitle:[self editorMenuTitle] action:@selector(toggleEditor:) keyEquivalent:@""].target = self;
-    NSMenuItem *reading = [menu addItemWithTitle:[self readingTextMenuTitle] action:@selector(toggleReadingText:) keyEquivalent:@"t"];
-    reading.target = self; reading.state = self.readingTextPinned ? NSControlStateValueOn : NSControlStateValueOff;
-    [menu addItem:NSMenuItem.separatorItem];
-    NSMenuItem *top = [menu addItemWithTitle:@"Oben an der Notch" action:@selector(useNotch:) keyEquivalent:@""]; top.target = self; top.state = [self.positionMode isEqual:@"notch"] ? NSControlStateValueOn : NSControlStateValueOff;
-    NSMenuItem *bottom = [menu addItemWithTitle:@"Unten über Aqua" action:@selector(useBottom:) keyEquivalent:@""]; bottom.target = self; bottom.state = [self.positionMode isEqual:@"bottom"] ? NSControlStateValueOn : NSControlStateValueOff;
-    [menu addItem:NSMenuItem.separatorItem];
-    [menu addItemWithTitle:@"Stimmen & Modelle…" action:@selector(openVoices:) keyEquivalent:@""].target = self;
-    [menu addItemWithTitle:@"Mauszugriff aktivieren…" action:@selector(requestPermission:) keyEquivalent:@""].target = self;
-    [menu addItemWithTitle:@"Player ausblenden" action:@selector(hideWindow:) keyEquivalent:@""].target = self;
-    [menu addItemWithTitle:@"Beenden" action:@selector(terminate:) keyEquivalent:@""].target = NSApp;
-    [menu popUpMenuPositioningItem:nil atLocation:NSMakePoint(0, 0) inView:self.settingsButton];
+    if (self.controlsPopover.shown) { [self.controlsPopover close]; return; }
+    [self.textPanel orderOut:nil];
+    NSViewController *controller = [NSViewController new];
+    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 276, 302)];
+    controller.view = view;
+    NSTextField *heading = [NSTextField labelWithString:@"Lokal vorlesen"];
+    heading.font = [NSFont systemFontOfSize:14 weight:NSFontWeightSemibold];
+    heading.frame = NSMakeRect(16, 271, 244, 20); [view addSubview:heading];
+    NSString *context = [NSString stringWithFormat:@"%@ · %@", self.voiceLabel.stringValue ?: @"Thorsten", self.status.stringValue ?: @"Bereit"];
+    NSTextField *info = [NSTextField labelWithString:context];
+    info.font = [NSFont systemFontOfSize:11]; info.textColor = NSColor.secondaryLabelColor;
+    info.lineBreakMode = NSLineBreakByTruncatingTail; info.toolTip = context;
+    info.frame = NSMakeRect(16, 252, 244, 17); [view addSubview:info];
+    [self settingsActionButton:self.editorView.hidden ? @"Text eingeben" : @"Texteingabe schließen" tag:0 frame:NSMakeRect(12, 216, 252, 28) inView:view];
+    [self settingsActionButton:@"Bildschirmbereich…" tag:1 frame:NSMakeRect(12, 181, 137, 28) inView:view];
+    [self settingsActionButton:@"Zwischenablage" tag:2 frame:NSMakeRect(153, 181, 111, 28) inView:view];
+    NSButton *reading = [NSButton checkboxWithTitle:@"Lesetext anzeigen" target:self action:@selector(popupReadingChanged:)];
+    reading.state = self.readingTextPinned ? NSControlStateValueOn : NSControlStateValueOff;
+    reading.frame = NSMakeRect(16, 153, 244, 22); reading.font = [NSFont systemFontOfSize:12]; [view addSubview:reading];
+    NSButton *automatic = [NSButton checkboxWithTitle:@"Kopiertes automatisch vorlesen" target:self action:@selector(popupClipboardChanged:)];
+    automatic.state = self.autoClipboard ? NSControlStateValueOn : NSControlStateValueOff;
+    automatic.frame = NSMakeRect(16, 129, 244, 22); automatic.font = [NSFont systemFontOfSize:12]; [view addSubview:automatic];
+    NSTextField *position = [NSTextField labelWithString:@"Position"];
+    position.font = [NSFont systemFontOfSize:12]; position.frame = NSMakeRect(16, 99, 64, 20); [view addSubview:position];
+    self.modeControl = [NSSegmentedControl segmentedControlWithLabels:@[@"Oben", @"Unten"] trackingMode:NSSegmentSwitchTrackingSelectOne target:self action:@selector(popupPositionChanged:)];
+    self.modeControl.frame = NSMakeRect(92, 97, 168, 24);
+    self.modeControl.selectedSegment = [self.positionMode isEqual:@"bottom"] ? 1 : 0;
+    self.modeControl.accessibilityLabel = @"Playerposition"; [view addSubview:self.modeControl];
+    [self settingsActionButton:@"Stimmen & Modelle…" tag:3 frame:NSMakeRect(12, 59, 252, 28) inView:view];
+    BOOL trusted = AXIsProcessTrusted();
+    NSButton *permission = [self settingsActionButton:trusted ? @"Mauszugriff aktiv" : @"Mauszugriff erlauben…" tag:4 frame:NSMakeRect(12, 25, 154, 26) inView:view];
+    permission.enabled = !trusted; permission.bordered = NO;
+    NSButton *hide = [self settingsActionButton:@"Ausblenden" tag:5 frame:NSMakeRect(170, 25, 94, 26) inView:view];
+    hide.bordered = NO;
+    self.controlsPopover = [NSPopover new];
+    self.controlsPopover.behavior = NSPopoverBehaviorTransient;
+    self.controlsPopover.animates = !NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion;
+    self.controlsPopover.contentViewController = controller;
+    self.controlsPopover.contentSize = view.frame.size;
+    [self.window makeKeyWindow];
+    [self.controlsPopover showRelativeToRect:self.settingsButton.bounds ofView:self.settingsButton preferredEdge:[self.positionMode isEqual:@"bottom"] ? NSMaxYEdge : NSMinYEdge];
 }
 - (void)toggleAutoClipboard:(id)sender {
     self.autoClipboard = !self.autoClipboard;
@@ -538,8 +601,9 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     CGFloat y = [self.positionMode isEqual:@"bottom"] ? NSMinY(visible) + 88 : NSMaxY(visible) - frame.size.height - 6;
     [self.window setFrameOrigin:NSMakePoint(x, MAX(NSMinY(visible), y))];
 }
-- (void)hideWindow:(id)sender { [self.window orderOut:nil]; [self.textPanel orderOut:nil]; }
+- (void)hideWindow:(id)sender { [self.controlsPopover close]; [self.window orderOut:nil]; [self.textPanel orderOut:nil]; }
 - (void)toggleEditor:(id)sender {
+    [self.controlsPopover close];
     BOOL expand = self.editorView.hidden;
     NSRect frame = self.window.frame; frame.size.height = expand ? 142 : 32; frame.size.width = expand ? 288 : 180;
     [self.window setFrame:frame display:YES]; self.editorView.hidden = !expand;
@@ -819,14 +883,18 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     }
     if (!self.task.running || self.player || self.streamPaused) { self.silentSince = 0; return; }
     if (!self.silentSince) self.silentSince = now;
-    // Recover only an unstarted request. Never interrupt active or paused audio/OCR.
-    if (self.nextChunk == 0 && now-self.silentSince > 30 && self.automaticRetryUsed) {
-        [self stop:nil]; self.status.stringValue = @"Sprachengine reagiert nicht. Bitte erneut starten."; [self record:@"generation_recovery_failed"]; return;
-    }
-    if (self.nextChunk == 0 && now-self.silentSince > 30 && !self.automaticRetryUsed && now-self.lastAutomaticRetry > 120) {
-        NSString *text = self.originalRequestText;
+    if (now-self.silentSince <= 30) return;
+    // Replay only a request that has not produced audio. A later gap must stop
+    // instead of repeating text already heard. The cooldown limits retries,
+    // not error reporting: it must never leave a stalled request alive forever.
+    if (self.request.length && self.nextChunk == 0 && !self.automaticRetryUsed && now-self.lastAutomaticRetry > 120 && self.originalRequestText.length) {
+        NSString *text = [self.originalRequestText copy];
         self.lastAutomaticRetry = now; [self record:@"generation_stalled_retry"]; [self startText:text]; self.automaticRetryUsed = YES;
+        return;
     }
+    BOOL laterBuffer = self.nextChunk > 0;
+    [self stop:nil]; self.status.stringValue = @"Sprachengine reagiert nicht. Bitte erneut starten.";
+    [self record:laterBuffer ? @"generation_buffer_stalled" : @"generation_recovery_failed"];
 }
 - (void)changeSpeed:(id)sender {
     double rate = fmax(0.5, fmin(4, self.speed.doubleValue));
@@ -917,15 +985,13 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
 }
 - (void)applicationWillTerminate:(NSNotification *)notification {
     [self.meterTimer invalidate];
-    if (self.voiceServer.running) [self.voiceServer terminate];
-    if (self.voiceServer.running) [self.voiceServer waitUntilExit];
+    TerminateAndWait(self.voiceServer);
     [self stop:nil];
     [self.speechWorker shutdownAndWait]; self.speechWorker = nil;
     NSDictionary<NSString *, NSTask *> *pending = [self.pendingTasks copy];
     for (NSString *directory in pending) {
         NSTask *task = pending[directory];
-        if (task.running) [task terminate];
-        if (task.running) [task waitUntilExit];
+        TerminateAndWait(task);
         RemoveDirectory(directory);
     }
     [self.pendingTasks removeAllObjects]; [self dismissAccessory];

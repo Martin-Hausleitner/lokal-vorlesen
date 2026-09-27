@@ -31,7 +31,8 @@
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
         NSMutableData *buffer = [NSMutableData data];
         @try {
-            for (;;) {
+            BOOL invalidProtocol = NO;
+            for (; !invalidProtocol;) {
                 NSData *data = [output.fileHandleForReading availableData];
                 if (!data.length) break;
                 [buffer appendData:data];
@@ -44,9 +45,12 @@
                     NSData *line = [buffer subdataWithRange:NSMakeRange(0, newline)];
                     [buffer replaceBytesInRange:NSMakeRange(0, newline + 1) withBytes:NULL length:0];
                     id event = [NSJSONSerialization JSONObjectWithData:line options:0 error:nil];
-                    if ([event isKindOfClass:NSDictionary.class]) {
-                        dispatch_async(dispatch_get_main_queue(), ^{ [self handleEvent:event]; });
+                    if (![event isKindOfClass:NSDictionary.class] || ![event[@"event"] isKindOfClass:NSString.class] ||
+                        (event[@"request_id"] && ![event[@"request_id"] isKindOfClass:NSString.class])) {
+                        invalidProtocol = YES;
+                        break;
                     }
+                    dispatch_async(dispatch_get_main_queue(), ^{ [self handleEvent:event]; });
                 }
             }
         } @catch (NSException *exception) {}
