@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbfbfd">
+  <title>LokalVorlesen – Stimmen</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f8f8fa;
+      --surface: #ffffff;
+      --surface-muted: #f2f2f5;
+      --ink: #1d1d1f;
+      --ink-soft: #68686f;
+      --ink-faint: #98989f;
+      --line: rgba(29, 29, 31, .1);
+      --line-strong: rgba(29, 29, 31, .17);
+      --blue: #0a6cff;
+      --blue-dark: #0057d9;
+      --blue-soft: #eaf2ff;
+      --green: #147b4b;
+      --red: #b42318;
+      --shadow-card: 0 2px 10px rgba(31, 31, 35, .035), 0 12px 32px rgba(31, 31, 35, .045);
+      --shadow-float: 0 12px 30px rgba(31, 31, 35, .12), 0 2px 8px rgba(31, 31, 35, .06);
+      --radius-card: 18px;
+      --radius-control: 12px;
+      --focus: 0 0 0 3px rgba(10, 108, 255, .22);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-width: 320px; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, input { font: inherit; }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: none;
+      box-shadow: var(--focus);
+    }
+
+    button:disabled {
+      cursor: default;
+    }
+
+    .app-shell {
+      width: min(1240px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 22px 0 64px;
+    }
+
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 46px;
+      margin-bottom: 68px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 680;
+      letter-spacing: -.02em;
+    }
+
+    .brand-mark {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: var(--ink);
+    }
+
+    .brand-mark span {
+      width: 2px;
+      border-radius: 999px;
+      background: #fff;
+    }
+
+    .brand-mark span:nth-child(1) { height: 7px; opacity: .75; }
+    .brand-mark span:nth-child(2) { height: 14px; }
+    .brand-mark span:nth-child(3) { height: 10px; opacity: .87; }
+    .brand-mark span:nth-child(4) { height: 5px; opacity: .6; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .mode-label {
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .01em;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: var(--surface);
+      box-shadow: 0 1px 2px rgba(31, 31, 35, .03);
+    }
+
+    .mode-switch button {
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 650;
+      transition: background-color .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+
+    .mode-switch button[aria-checked="true"] {
+      background: var(--ink);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(31, 31, 35, .16);
+    }
+
+    .mode-switch button:disabled { opacity: .55; }
+
+    .intro {
+      max-width: 760px;
+      margin-bottom: 38px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.8rem, 7vw, 5.8rem);
+      font-weight: 720;
+      letter-spacing: -.075em;
+      line-height: .98;
+    }
+
+    .intro-copy {
+      max-width: 570px;
+      margin: 22px 0 0;
+      color: var(--ink-soft);
+      font-size: clamp(1rem, 1.6vw, 1.14rem);
+      letter-spacing: -.012em;
+    }
+
+    .toolbar {
+      display: grid;
+      gap: 20px;
+      margin-bottom: 26px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 1px 2px rgba(31, 31, 35, .025);
+    }
+
+    .toolbar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1 1 440px;
+    }
+
+    .search-icon {
+      position: absolute;
+      top: 50%;
+      left: 14px;
+      width: 14px;
+      height: 14px;
+      border: 1.8px solid var(--ink-soft);
+      border-radius: 50%;
+      transform: translateY(-56%);
+    }
+
+    .search-icon::after {
+      position: absolute;
+      right: -4px;
+      bottom: -3px;
+      width: 6px;
+      height: 1.8px;
+      border-radius: 999px;
+      background: var(--ink-soft);
+      content: "";
+      transform: rotate(45deg);
+      transform-origin: left center;
+    }
+
+    .search-input {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 16px 10px 42px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-control);
+      outline: none;
+      background: var(--surface);
+      color: var(--ink);
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .search-input::placeholder { color: var(--ink-faint); }
+    .search-input:focus { border-color: rgba(10, 108, 255, .48); }
+
+    .count-label {
+      flex: 0 0 auto;
+      color: var(--ink-soft);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      gap: 13px;
+    }
+
+    .filter-label {
+      padding-top: 7px;
+      color: var(--ink-faint);
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .pill {
+      min-height: 30px;
+      padding: 5px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 620;
+      transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+    }
+
+    .pill:hover { border-color: var(--line-strong); color: var(--ink); }
+
+    .pill[aria-pressed="true"] {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .download-panel {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 24px;
+      padding: 15px 17px;
+      border: 1px solid rgba(10, 108, 255, .18);
+      border-radius: 15px;
+      background: var(--blue-soft);
+    }
+
+    .download-panel[hidden] { display: none; }
+
+    .download-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .download-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+
+    .download-state {
+      color: var(--blue-dark);
+      font-size: 12px;
+      font-weight: 680;
+      white-space: nowrap;
+    }
+
+    .download-detail {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--ink-soft);
+      font-size: 12px;
+    }
+
+    .download-error { color: var(--red); }
+
+    .notice {
+      margin: -8px 0 20px;
+      color: var(--ink-soft);
+      font-size: 12px;
+    }
+
+    .notice[hidden] { display: none; }
+    .notice.error { color: var(--red); }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(10, 108, 255, .14);
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+      transition: width .22s ease;
+    }
+
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .voice-card {
+      position: relative;
+      display: flex;
+      min-height: 220px;
+      flex-direction: column;
+      padding: 18px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .voice-card:hover {
+      border-color: rgba(10, 108, 255, .22);
+      box-shadow: 0 5px 18px rgba(31, 31, 35, .065), 0 16px 36px rgba(31, 31, 35, .06);
+      transform: translateY(-1px);
+    }
+
+    .voice-card.is-playing {
+      border-color: rgba(10, 108, 255, .58);
+      box-shadow: 0 0 0 3px rgba(10, 108, 255, .08), var(--shadow-card);
+    }
+
+    .voice-card.is-selected { border-color: rgba(10, 108, 255, .34); }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-language {
+      display: flex;
+      min-width: 0;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+      color: var(--ink-soft);
+      font-size: 12px;
+      font-weight: 620;
+    }
+
+    .language-code {
+      color: var(--ink-faint);
+      font-size: 11px;
+      font-weight: 620;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .quality-badge,
+    .selected-badge {
+      flex: 0 0 auto;
+      padding: 4px 7px;
+      border-radius: 7px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      line-height: 1;
+    }
+
+    .quality-badge {
+      background: var(--surface-muted);
+      color: var(--ink-soft);
+    }
+
+    .selected-badge {
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+    }
+
+    .voice-name {
+      margin: 24px 0 4px;
+      overflow: hidden;
+      font-size: 21px;
+      font-weight: 700;
+      letter-spacing: -.045em;
+      line-height: 1.1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .voice-speaker {
+      min-height: 22px;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink-soft);
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-spacer { flex: 1; min-height: 23px; }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      color: var(--ink-faint);
+      font-size: 11px;
+    }
+
+    .card-meta span:first-child { color: var(--ink-soft); }
+
+    .card-actions {
+      display: grid;
+      grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+      gap: 8px;
+    }
+
+    .action-button {
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 680;
+      transition: background-color .18s ease, border-color .18s ease, color .18s ease, opacity .18s ease;
+    }
+
+    .preview-button {
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      color: var(--ink);
+    }
+
+    .preview-button:hover { background: var(--surface-muted); }
+
+    .preview-button[aria-pressed="true"] {
+      border-color: rgba(10, 108, 255, .28);
+      background: var(--blue-soft);
+      color: var(--blue-dark);
+    }
+
+    .preview-button:disabled { color: var(--ink-faint); opacity: .76; }
+
+    .select-button {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .select-button:hover { background: #343437; }
+
+    .select-button:disabled {
+      background: var(--surface-muted);
+      color: var(--ink-soft);
+    }
+
+    .audio-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 19px;
+      margin-top: 10px;
+      color: var(--blue-dark);
+      font-size: 11px;
+      font-weight: 620;
+    }
+
+    .audio-status.error { color: var(--red); }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .card-meter {
+      width: 100%;
+      height: 3px;
+      margin-top: 11px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--surface-muted);
+    }
+
+    .card-meter[hidden] { display: none; }
+
+    .card-meter-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .loading-card {
+      min-height: 220px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+    }
+
+    .loading-card::after {
+      display: block;
+      width: 52%;
+      height: 8px;
+      margin: 170px 18px 0;
+      border-radius: 999px;
+      background: var(--surface-muted);
+      content: "";
+    }
+
+    .state-panel {
+      display: grid;
+      justify-items: start;
+      gap: 12px;
+      padding: 38px 24px;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, .55);
+    }
+
+    .state-panel h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.03em;
+    }
+
+    .state-panel p {
+      max-width: 560px;
+      margin: -4px 0 2px;
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .state-panel.error h2 { color: var(--red); }
+
+    .secondary-button {
+      min-height: 37px;
+      padding: 8px 13px;
+      border: 1px solid var(--line-strong);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 680;
+    }
+
+    .secondary-button:hover { background: var(--surface-muted); }
+
+    .live-region {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    footer {
+      margin-top: 36px;
+      color: var(--ink-faint);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 920px) {
+      .voice-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      .app-shell { width: min(100% - 28px, 520px); padding-top: 14px; }
+      .site-header { align-items: flex-start; margin-bottom: 50px; }
+      .header-actions { align-items: flex-end; flex-direction: column; gap: 7px; }
+      .mode-label { font-size: 11px; }
+      .intro { margin-bottom: 28px; }
+      h1 { font-size: clamp(2.75rem, 15vw, 4.5rem); }
+      .toolbar { padding: 14px; border-radius: 16px; }
+      .toolbar-top { align-items: flex-start; flex-direction: column; gap: 12px; }
+      .search-wrap { flex-basis: auto; width: 100%; }
+      .filter-row { grid-template-columns: 1fr; gap: 7px; }
+      .filter-label { padding-top: 0; }
+      .voice-grid { grid-template-columns: 1fr; }
+      .voice-card { min-height: 205px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="LokalVorlesen Startseite">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span>LokalVorlesen</span>
+      </a>
+      <div class="header-actions">
+        <span class="mode-label">Player-Position</span>
+        <div class="mode-switch" role="radiogroup" aria-label="Player-Position">
+          <button type="button" data-mode="notch" role="radio" aria-checked="true">Notch</button>
+          <button type="button" data-mode="bottom" role="radio" aria-checked="false">Unten</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow">Stimmenbibliothek</p>
+        <h1 id="page-title">Finde deine Stimme.</h1>
+        <p class="intro-copy">Höre echte lokale Hörproben und wähle die Stimme, die dich beim Arbeiten begleitet.</p>
+      </section>
+
+      <section class="toolbar" aria-label="Stimmen filtern">
+        <div class="toolbar-top">
+          <label class="search-wrap" for="voice-search">
+            <span class="search-icon" aria-hidden="true"></span>
+            <input id="voice-search" class="search-input" type="search" autocomplete="off" placeholder="Stimme, Sprache oder Sprecher suchen …">
+          </label>
+          <span id="voice-count" class="count-label" aria-live="polite">Lade Stimmen …</span>
+        </div>
+
+        <div class="filter-row">
+          <span class="filter-label">Sprache</span>
+          <div id="language-pills" class="pills" role="group" aria-label="Nach Sprache filtern"></div>
+        </div>
+
+        <div class="filter-row">
+          <span class="filter-label">Modellgröße</span>
+          <div id="size-pills" class="pills" role="group" aria-label="Nach Modellgröße filtern">
+            <button type="button" class="pill" data-size="all" aria-pressed="true">Alle Größen</button>
+            <button type="button" class="pill" data-size="small" aria-pressed="false">Bis 20 MB</button>
+            <button type="button" class="pill" data-size="medium" aria-pressed="false">20–60 MB</button>
+            <button type="button" class="pill" data-size="large" aria-pressed="false">Über 60 MB</button>
+          </div>
+        </div>
+      </section>
+
+      <p id="notice" class="notice" aria-live="polite" hidden></p>
+
+      <section id="download-panel" class="download-panel" aria-live="polite" hidden>
+        <div class="download-head">
+          <p id="download-title" class="download-title">Stimme wird vorbereitet</p>
+          <span id="download-state" class="download-state">Wird geladen</span>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="Downloadfortschritt" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="download-progress" class="progress-fill"></div>
+        </div>
+        <div class="download-detail">
+          <span id="download-message">Die lokale Stimme wird vorbereitet.</span>
+          <span id="download-percent">0 %</span>
+        </div>
+      </section>
+
+      <section id="voice-grid" class="voice-grid" aria-live="polite" aria-busy="true"></section>
+    </main>
+
+    <footer>Lokale Hörproben · Auswahl für deinen Player</footer>
+  </div>
+
+  <p id="live-region" class="live-region" aria-live="assertive"></p>
+  <audio id="preview-audio" preload="none"></audio>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const API = {
+        voices: '/api/voices',
+        select: '/api/select',
+        mode: '/api/mode'
+      };
+      const MB = 1024 * 1024;
+      const refs = {
+        search: document.getElementById('voice-search'),
+        count: document.getElementById('voice-count'),
+        languagePills: document.getElementById('language-pills'),
+        sizePills: document.getElementById('size-pills'),
+        downloadPanel: document.getElementById('download-panel'),
+        downloadTitle: document.getElementById('download-title'),
+        downloadState: document.getElementById('download-state'),
+        downloadProgress: document.getElementById('download-progress'),
+        downloadPercent: document.getElementById('download-percent'),
+        downloadMessage: document.getElementById('download-message'),
+        downloadTrack: document.querySelector('.download-panel .progress-track'),
+        voiceGrid: document.getElementById('voice-grid'),
+        audio: document.getElementById('preview-audio'),
+        live: document.getElementById('live-region'),
+        notice: document.getElementById('notice'),
+        modeButtons: [...document.querySelectorAll('[data-mode]')]
+      };
+
+      const state = {
+        voices: [],
+        selected: null,
+        download: { state: 'idle', voiceId: null, progress: 0, error: '' },
+        query: '',
+        language: 'all',
+        size: 'all',
+        loading: true,
+        loaded: false,
+        loadError: '',
+        notice: '',
+        noticeType: '',
+        activeVoiceId: null,
+        audioProgress: 0,
+        isPlaying: false,
+        voiceErrors: new Map(),
+        selectionPendingId: null,
+        mode: readMode(),
+        modePending: false,
+        pollTimer: null,
+        polling: false
+      };
+
+      function readMode() {
+        try {
+          const saved = window.localStorage.getItem('lokalvorlesen.playerMode');
+          return saved === 'bottom' ? 'bottom' : 'notch';
+        } catch (_) {
+          return 'notch';
+        }
+      }
+
+      function writeMode(mode) {
+        try { window.localStorage.setItem('lokalvorlesen.playerMode', mode); } catch (_) { /* private mode */ }
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[character]));
+      }
+
+      function normalizeVoice(raw) {
+        if (!raw || typeof raw !== 'object') return null;
+        const id = String(raw.id ?? '').trim();
+        if (!id) return null;
+        const bytes = Number(raw.model_bytes);
+        const rawSpeaker = raw.speaker;
+        let speaker = '';
+        if (typeof rawSpeaker === 'number') {
+          speaker = rawSpeaker > 0 ? `Sprecher ${rawSpeaker}` : '';
+        } else if (rawSpeaker !== null && rawSpeaker !== undefined) {
+          const speakerValue = String(rawSpeaker).trim();
+          if (/^\d+$/.test(speakerValue)) {
+            const speakerNumber = Number(speakerValue);
+            speaker = speakerNumber > 0 ? `Sprecher ${speakerNumber}` : '';
+          } else {
+            speaker = speakerValue;
+          }
+        }
+        return {
+          id,
+          name: String(raw.name ?? id).trim() || id,
+          language: String(raw.language ?? '').trim(),
+          languageCode: String(raw.language_code ?? '').trim(),
+          quality: String(raw.quality ?? '').trim(),
+          speaker,
+          modelBytes: Number.isFinite(bytes) && bytes > 0 ? bytes : null,
+          localAvailable: raw.local_available !== false,
+          availabilityNote: String(raw.availability_note || ''),
+          sampleUrl: String(raw.sample_url ?? '').trim()
+        };
+      }
+
+      function normalizeSelected(raw) {
+        if (raw && typeof raw === 'object') return String(raw.id ?? raw.voice_id ?? '').trim() || null;
+        return String(raw ?? '').trim() || null;
+      }
+
+      function normalizeDownload(raw) {
+        if (!raw || typeof raw !== 'object') return { state: 'idle', voiceId: null, progress: 0, error: '' };
+        const progress = Number(raw.progress);
+        return {
+          state: String(raw.state ?? 'idle').trim().toLowerCase() || 'idle',
+          voiceId: String(raw.voice_id ?? raw.voiceId ?? '').trim() || null,
+          progress: Number.isFinite(progress) ? progress : 0,
+          error: String(raw.error ?? '').trim()
+        };
+      }
+
+      function normalizeProgress(value) {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return 0;
+        return Math.max(0, Math.min(100, numeric));
+      }
+
+      function isDownloadInProgress(download = state.download) {
+        const current = String(download.state || '').toLowerCase();
+        if (!current || ['idle', 'ready', 'complete', 'completed', 'done', 'installed', 'error', 'failed', 'none', 'not_downloaded'].includes(current)) return false;
+        return ['queued', 'waiting', 'pending', 'downloading', 'loading', 'selecting', 'installing', 'preparing', 'processing', 'active', 'busy', 'in_progress'].includes(current) || current === 'download' || current.endsWith('_download');
+      }
+
+      function isDownloadError(download = state.download) {
+        return ['error', 'failed'].includes(String(download.state || '').toLowerCase()) || Boolean(download.error);
+      }
+
+      function isDownloadReady(download = state.download) {
+        return ['ready', 'complete', 'completed', 'done', 'installed'].includes(String(download.state || '').toLowerCase());
+      }
+
+      function downloadStateLabel(download = state.download) {
+        const current = String(download.state || '').toLowerCase();
+        if (isDownloadError(download)) return 'Fehler';
+        if (isDownloadReady(download)) return 'Bereit';
+        if (['queued', 'waiting', 'pending', 'selecting'].includes(current)) return 'Wartet';
+        if (isDownloadInProgress(download)) return 'Wird geladen';
+        return 'Wird verarbeitet';
+      }
+
+      function normalizePayload(payload) {
+        if (!payload || typeof payload !== 'object' || !Array.isArray(payload.voices)) {
+          throw new Error('Die Stimmenantwort hat ein ungültiges Format.');
+        }
+        return {
+          voices: payload.voices.map(normalizeVoice).filter(Boolean),
+          selected: normalizeSelected(payload.selected),
+          download: normalizeDownload(payload.download),
+          playerMode: ['notch', 'bottom'].includes(payload.player_mode) ? payload.player_mode : null
+        };
+      }
+
+      async function requestJson(url, options = {}) {
+        const headers = new Headers(options.headers || {});
+        headers.set('Accept', 'application/json');
+        if (options.body !== undefined) headers.set('Content-Type', 'application/json');
+        const response = await fetch(url, { ...options, headers });
+        const body = await response.text();
+        let data = null;
+        if (body.trim()) {
+          const contentType = response.headers.get('content-type') || '';
+          if (!contentType.toLowerCase().includes('application/json')) {
+            throw new Error('Der Server hat keine JSON-Antwort geliefert.');
+          }
+          try {
+            data = JSON.parse(body);
+          } catch (_) {
+            throw new Error('Die JSON-Antwort des Servers ist ungültig.');
+          }
+        }
+        if (!response.ok) {
+          const detail = data && typeof data === 'object' ? (data.error || data.message) : '';
+          throw new Error(String(detail || `Serverfehler (${response.status}).`));
+        }
+        return { data, status: response.status };
+      }
+
+      function setNotice(message, type = '') {
+        state.notice = message;
+        state.noticeType = type;
+        refs.live.textContent = message;
+      }
+
+      function languageKey(voice) {
+        return (voice.languageCode || voice.language || '').trim().toLowerCase() || 'unknown';
+      }
+
+      function languageLabel(voice) {
+        return voice.language || voice.languageCode || 'Unbekannte Sprache';
+      }
+
+      function isGerman(voice) {
+        const value = `${voice.languageCode} ${voice.language}`.toLowerCase();
+        return value.includes('de-') || value === 'de' || value.includes('deutsch') || value.includes('german');
+      }
+
+      function sizeBucket(bytes) {
+        if (!Number.isFinite(bytes)) return 'unknown';
+        if (bytes <= 20 * MB) return 'small';
+        if (bytes <= 60 * MB) return 'medium';
+        return 'large';
+      }
+
+      function formatSize(bytes) {
+        if (!Number.isFinite(bytes)) return 'Größe unbekannt';
+        return `${(bytes / MB).toFixed(1).replace('.', ',')} MB`;
+      }
+
+      function formatCount(value) {
+        return new Intl.NumberFormat('de-DE').format(value);
+      }
+
+      function getLanguages() {
+        const languages = new Map();
+        state.voices.forEach((voice) => {
+          const key = languageKey(voice);
+          if (!languages.has(key)) languages.set(key, { key, label: languageLabel(voice), german: isGerman(voice) });
+        });
+        return [...languages.values()].sort((a, b) => {
+          if (a.german !== b.german) return a.german ? -1 : 1;
+          return a.label.localeCompare(b.label, 'de');
+        });
+      }
+
+      function filteredVoices() {
+        const query = state.query.trim().toLocaleLowerCase('de-DE');
+        return state.voices.filter((voice) => {
+          const searchable = [voice.name, voice.language, voice.languageCode, voice.quality, voice.speaker].join(' ').toLocaleLowerCase('de-DE');
+          const queryMatches = !query || searchable.includes(query);
+          const languageMatches = state.language === 'all' || languageKey(voice) === state.language;
+          const sizeMatches = state.size === 'all' || sizeBucket(voice.modelBytes) === state.size;
+          return queryMatches && languageMatches && sizeMatches;
+        });
+      }
+
+      function cardStatus(voice) {
+        const error = state.voiceErrors.get(voice.id);
+        if (error) return { text: error, error: true };
+        if (state.activeVoiceId === voice.id && state.isPlaying) return { text: 'Wird abgespielt', error: false };
+        if (state.activeVoiceId === voice.id && !state.isPlaying && state.audioProgress > 0) return { text: 'Pausiert', error: false };
+        return null;
+      }
+
+      function usableSampleUrl(value) {
+        if (!value) return false;
+        try {
+          const url = new URL(value, window.location.href);
+          return ['http:', 'https:'].includes(url.protocol);
+        } catch (_) {
+          return false;
+        }
+      }
+
+      function renderLanguagePills() {
+        const languages = getLanguages();
+        const pills = [
+          `<button type="button" class="pill" data-language="all" aria-pressed="${state.language === 'all'}">Alle</button>`,
+          ...languages.map((language) => `<button type="button" class="pill" data-language="${escapeHtml(language.key)}" aria-pressed="${state.language === language.key}">${escapeHtml(language.label)}</button>`)
+        ];
+        refs.languagePills.innerHTML = pills.join('');
+      }
+
+      function renderDownloadPanel() {
+        const shouldShow = Boolean(state.download.voiceId) && (isDownloadInProgress() || isDownloadError() || isDownloadReady());
+        refs.downloadPanel.hidden = !shouldShow;
+        if (!shouldShow) return;
+
+        const voice = state.voices.find((item) => item.id === state.download.voiceId);
+        const progress = normalizeProgress(state.download.progress);
+        const error = isDownloadError();
+        const ready = isDownloadReady();
+        refs.downloadTitle.textContent = voice ? voice.name : 'Stimme wird vorbereitet';
+        refs.downloadState.textContent = downloadStateLabel();
+        refs.downloadProgress.style.width = `${progress}%`;
+        refs.downloadPercent.textContent = `${Math.round(progress)} %`;
+        refs.downloadTrack.setAttribute('aria-valuenow', String(Math.round(progress)));
+        refs.downloadTrack.setAttribute('aria-valuetext', `${Math.round(progress)} Prozent`);
+        refs.downloadMessage.textContent = error
+          ? (state.download.error || 'Die Stimme konnte nicht vorbereitet werden.')
+          : ready
+            ? 'Die Stimme ist im lokalen Player verfügbar.'
+            : 'Die lokale Stimme wird vorbereitet.';
+        refs.downloadMessage.classList.toggle('download-error', error);
+      }
+
+      function renderCards() {
+        refs.voiceGrid.setAttribute('aria-busy', state.loading ? 'true' : 'false');
+        if (state.loading && !state.loaded) {
+          refs.voiceGrid.innerHTML = '<div class="loading-card" aria-hidden="true"></div><div class="loading-card" aria-hidden="true"></div><div class="loading-card" aria-hidden="true"></div>';
+          return;
+        }
+
+        if (state.loadError) {
+          refs.voiceGrid.innerHTML = `<div class="state-panel error"><h2>Stimmen konnten nicht geladen werden.</h2><p>${escapeHtml(state.loadError)}</p><button type="button" class="secondary-button" data-action="reload">Erneut versuchen</button></div>`;
+          return;
+        }
+
+        if (!state.voices.length) {
+          refs.voiceGrid.innerHTML = '<div class="state-panel"><h2>Noch keine Stimmen verfügbar.</h2><p>Der lokale Server hat keine Stimmen gemeldet. Sobald echte Hörproben vorhanden sind, erscheinen sie hier.</p><button type="button" class="secondary-button" data-action="reload">Erneut laden</button></div>';
+          return;
+        }
+
+        const voices = filteredVoices();
+        if (!voices.length) {
+          refs.voiceGrid.innerHTML = '<div class="state-panel"><h2>Keine passende Stimme.</h2><p>Ändere deine Suche oder setze die Filter zurück.</p><button type="button" class="secondary-button" data-action="clear-filters">Filter zurücksetzen</button></div>';
+          return;
+        }
+
+        refs.voiceGrid.innerHTML = voices.map(renderCard).join('');
+      }
+
+      function renderCard(voice) {
+        const selected = state.selected === voice.id;
+        const playing = state.activeVoiceId === voice.id && state.isPlaying;
+        const paused = state.activeVoiceId === voice.id && !state.isPlaying && state.audioProgress > 0;
+        const status = cardStatus(voice);
+        const activeDownload = isDownloadInProgress() && state.download.voiceId === voice.id;
+        const blockedByOtherDownload = isDownloadInProgress() && state.download.voiceId && state.download.voiceId !== voice.id;
+        const selecting = state.selectionPendingId === voice.id;
+        const previewLabel = playing ? 'Pause' : paused ? 'Weiter' : 'Hörprobe';
+        const selectLabel = !voice.localAvailable ? 'Nur Hörprobe' : selected ? 'Im Player ausgewählt' : activeDownload ? `${Math.round(normalizeProgress(state.download.progress))} % geladen` : selecting ? 'Wird vorbereitet …' : 'Im Player verwenden';
+        const code = voice.languageCode ? `<span class="language-code">${escapeHtml(voice.languageCode)}</span>` : '';
+        const quality = voice.quality ? `<span class="quality-badge">${escapeHtml(voice.quality)}</span>` : '';
+        const badge = selected ? '<span class="selected-badge">Ausgewählt</span>' : quality;
+        const statusMarkup = status ? `<div class="audio-status${status.error ? ' error' : ''}"><span class="status-dot" aria-hidden="true"></span><span>${escapeHtml(status.text)}</span></div>` : '';
+        const meter = state.activeVoiceId === voice.id && (playing || paused) ? `<div class="card-meter" aria-hidden="true"><div class="card-meter-fill" style="width:${Math.round(state.audioProgress * 100)}%"></div></div>` : '<div class="card-meter" hidden></div>';
+        const noSample = !usableSampleUrl(voice.sampleUrl);
+        return `<article class="voice-card${playing ? ' is-playing' : ''}${selected ? ' is-selected' : ''}" data-voice-id="${escapeHtml(voice.id)}">
+          <div class="card-top">
+            <div class="card-language"><span>${escapeHtml(languageLabel(voice))}</span>${code}</div>
+            ${badge}
+          </div>
+          <h2 class="voice-name" title="${escapeHtml(voice.name)}">${escapeHtml(voice.name)}</h2>
+          <p class="voice-speaker">${escapeHtml(voice.speaker || 'Hörprobe')}</p>
+          <div class="card-spacer"></div>
+          <div class="card-meta"><span>${escapeHtml(formatSize(voice.modelBytes))}</span><span>${escapeHtml(({x_low:'Sehr kompakt',low:'Kompakt',medium:'Ausgewogen',high:'Hohe Qualität'})[voice.quality] || 'Lokale Ausgabe')}</span></div>
+          <div class="card-actions">
+            <button type="button" class="action-button preview-button" data-action="preview" aria-pressed="${playing}" ${noSample ? 'disabled' : ''}>${previewLabel}</button>
+            <button type="button" class="action-button select-button" data-action="select" title="${escapeHtml(voice.availabilityNote)}" ${!voice.localAvailable || selected || selecting || blockedByOtherDownload || activeDownload ? 'disabled' : ''}>${selectLabel}</button>
+          </div>
+          ${statusMarkup}
+          ${voice.availabilityNote ? `<p class="voice-speaker">${escapeHtml(voice.availabilityNote)}</p>` : ''}
+          ${meter}
+        </article>`;
+      }
+
+      function render() {
+        const total = state.voices.length;
+        const visible = filteredVoices().length;
+        if (state.loading && !state.loaded) {
+          refs.count.textContent = 'Lade Stimmen …';
+        } else if (!total) {
+          refs.count.textContent = '0 Stimmen';
+        } else if (visible === total) {
+          refs.count.textContent = `${formatCount(total)} Stimmen`;
+        } else {
+          refs.count.textContent = `${formatCount(visible)} von ${formatCount(total)} Stimmen`;
+        }
+        renderLanguagePills();
+        [...refs.sizePills.querySelectorAll('[data-size]')].forEach((button) => {
+          button.setAttribute('aria-pressed', String(button.dataset.size === state.size));
+        });
+        refs.modeButtons.forEach((button) => {
+          button.setAttribute('aria-checked', String(button.dataset.mode === state.mode));
+          button.disabled = state.modePending;
+        });
+        refs.notice.hidden = !state.notice;
+        refs.notice.textContent = state.notice;
+        refs.notice.classList.toggle('error', state.noticeType === 'error');
+        renderDownloadPanel();
+        renderCards();
+      }
+
+      function stopPreview() {
+        refs.audio.pause();
+        refs.audio.removeAttribute('src');
+        refs.audio.load();
+        state.activeVoiceId = null;
+        state.audioProgress = 0;
+        state.isPlaying = false;
+      }
+
+      function failPreview(voiceId, message) {
+        state.voiceErrors.set(voiceId, message);
+        state.isPlaying = false;
+        setNotice(message, 'error');
+        render();
+      }
+
+      function togglePreview(voice) {
+        if (!usableSampleUrl(voice.sampleUrl)) {
+          failPreview(voice.id, 'Für diese Stimme ist keine gültige Hörprobe verfügbar.');
+          return;
+        }
+        if (state.activeVoiceId === voice.id) {
+          if (state.isPlaying) {
+            refs.audio.pause();
+          } else {
+            state.voiceErrors.delete(voice.id);
+            refs.audio.play().catch(() => failPreview(voice.id, 'Die Hörprobe konnte nicht gestartet werden.'));
+          }
+          return;
+        }
+
+        refs.audio.pause();
+        refs.audio.removeAttribute('src');
+        refs.audio.load();
+        state.voiceErrors.delete(voice.id);
+        state.activeVoiceId = voice.id;
+        state.audioProgress = 0;
+        state.isPlaying = false;
+        refs.audio.src = voice.sampleUrl;
+        refs.audio.load();
+        render();
+        refs.audio.play().catch(() => failPreview(voice.id, 'Die Hörprobe konnte nicht geladen werden.'));
+      }
+
+      function clearPollTimer() {
+        if (state.pollTimer) window.clearTimeout(state.pollTimer);
+        state.pollTimer = null;
+      }
+
+      function stopPolling() {
+        state.polling = false;
+        clearPollTimer();
+      }
+
+      function scheduleDownloadPoll() {
+        if (!state.polling) return;
+        clearPollTimer();
+        state.pollTimer = window.setTimeout(pollDownloadState, 1100);
+      }
+
+      async function pollDownloadState() {
+        state.pollTimer = null;
+        if (!state.polling) return;
+        try {
+          const result = await requestJson(API.voices);
+          const payload = normalizePayload(result.data);
+          state.voices = payload.voices;
+          state.selected = payload.selected;
+          state.download = payload.download;
+          if (payload.playerMode) {
+            state.mode = payload.playerMode;
+            writeMode(payload.playerMode);
+          }
+          state.loaded = true;
+          state.loading = false;
+          state.loadError = '';
+          render();
+          if (isDownloadInProgress()) scheduleDownloadPoll();
+          else stopPolling();
+        } catch (error) {
+          setNotice(error.message || 'Der Downloadstatus konnte nicht gelesen werden.', 'error');
+          render();
+          scheduleDownloadPoll();
+        }
+      }
+
+      async function loadVoices() {
+        state.loading = !state.loaded;
+        state.loadError = '';
+        render();
+        try {
+          const result = await requestJson(API.voices);
+          const payload = normalizePayload(result.data);
+          state.voices = payload.voices;
+          state.selected = payload.selected;
+          state.download = payload.download;
+          if (payload.playerMode) {
+            state.mode = payload.playerMode;
+            writeMode(payload.playerMode);
+          }
+          state.loaded = true;
+          state.loading = false;
+          state.loadError = '';
+          if (state.language !== 'all' && !getLanguages().some((item) => item.key === state.language)) state.language = 'all';
+          setNotice('', '');
+          render();
+          if (state.polling && !isDownloadInProgress()) stopPolling();
+        } catch (error) {
+          state.loading = false;
+          state.loadError = error.message || 'Die Stimmen konnten nicht geladen werden.';
+          setNotice(state.loadError, 'error');
+          render();
+        }
+      }
+
+      async function selectVoice(voice) {
+        if (!voice || !voice.localAvailable || state.selectionPendingId || state.selected === voice.id || isDownloadInProgress()) return;
+        state.selectionPendingId = voice.id;
+        state.voiceErrors.delete(voice.id);
+        setNotice(`${voice.name} wird für den Player vorbereitet.`, '');
+        render();
+        try {
+          const result = await requestJson(API.select, {
+            method: 'POST',
+            body: JSON.stringify({ voice_id: voice.id })
+          });
+          if (result.status !== 202) throw new Error(`Unerwartete Serverantwort (${result.status}).`);
+          state.selectionPendingId = null;
+          await loadVoices();
+          if (isDownloadInProgress()) {
+            state.polling = true;
+            scheduleDownloadPoll();
+          } else if (isDownloadError()) {
+            setNotice(state.download.error || 'Die Stimme konnte nicht vorbereitet werden.', 'error');
+            render();
+          } else {
+            setNotice('Die Auswahl wurde übernommen.', '');
+            render();
+          }
+        } catch (error) {
+          state.selectionPendingId = null;
+          setNotice(error.message || 'Die Stimme konnte nicht ausgewählt werden.', 'error');
+          render();
+        }
+      }
+
+      async function setMode(mode) {
+        if (!['notch', 'bottom'].includes(mode) || mode === state.mode || state.modePending) return;
+        const previous = state.mode;
+        state.mode = mode;
+        state.modePending = true;
+        render();
+        try {
+          await requestJson(API.mode, {
+            method: 'POST',
+            body: JSON.stringify({ mode })
+          });
+          writeMode(mode);
+          state.modePending = false;
+          setNotice(`Player-Position: ${mode === 'notch' ? 'Notch' : 'Unten'}.`, '');
+          render();
+        } catch (error) {
+          state.mode = previous;
+          state.modePending = false;
+          setNotice(error.message || 'Die Player-Position konnte nicht geändert werden.', 'error');
+          render();
+        }
+      }
+
+      refs.search.addEventListener('input', (event) => {
+        state.query = event.target.value;
+        render();
+      });
+
+      refs.languagePills.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-language]');
+        if (!button) return;
+        state.language = button.dataset.language || 'all';
+        render();
+      });
+
+      refs.sizePills.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-size]');
+        if (!button) return;
+        state.size = button.dataset.size || 'all';
+        render();
+      });
+
+      refs.voiceGrid.addEventListener('click', (event) => {
+        const actionButton = event.target.closest('[data-action]');
+        if (!actionButton) return;
+        const action = actionButton.dataset.action;
+        if (action === 'reload') {
+          loadVoices();
+          return;
+        }
+        if (action === 'clear-filters') {
+          state.query = '';
+          state.language = 'all';
+          state.size = 'all';
+          refs.search.value = '';
+          render();
+          return;
+        }
+        const card = actionButton.closest('[data-voice-id]');
+        const voice = state.voices.find((item) => item.id === card?.dataset.voiceId);
+        if (!voice) return;
+        if (action === 'preview') togglePreview(voice);
+        if (action === 'select') selectVoice(voice);
+      });
+
+      refs.modeButtons.forEach((button) => {
+        button.addEventListener('click', () => setMode(button.dataset.mode));
+      });
+
+      refs.audio.addEventListener('play', () => {
+        state.isPlaying = true;
+        setNotice('Hörprobe wird abgespielt.', '');
+        render();
+      });
+
+      refs.audio.addEventListener('pause', () => {
+        state.isPlaying = false;
+        render();
+      });
+
+      refs.audio.addEventListener('ended', () => {
+        state.isPlaying = false;
+        state.audioProgress = 1;
+        setNotice('Hörprobe fertig.', '');
+        render();
+      });
+
+      refs.audio.addEventListener('timeupdate', () => {
+        if (!Number.isFinite(refs.audio.duration) || refs.audio.duration <= 0) return;
+        state.audioProgress = Math.max(0, Math.min(1, refs.audio.currentTime / refs.audio.duration));
+        const card = refs.voiceGrid.querySelector(`[data-voice-id="${CSS.escape(state.activeVoiceId || '')}"]`);
+        const fill = card?.querySelector('.card-meter-fill');
+        if (fill) fill.style.width = `${Math.round(state.audioProgress * 100)}%`;
+      });
+
+      refs.audio.addEventListener('error', () => {
+        if (state.activeVoiceId) failPreview(state.activeVoiceId, 'Die Hörprobe konnte nicht geladen werden.');
+      });
+
+      window.addEventListener('beforeunload', () => {
+        stopPolling();
+        refs.audio.pause();
+      });
+
+      render();
+      loadVoices();
+    })();
+  </script>
+</body>
+</html>

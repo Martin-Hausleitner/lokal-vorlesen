@@ -1,0 +1,15 @@
+{
+  "name": "de_DE-thorsten-low INT8",
+  "source": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-de_DE-thorsten-low-int8.tar.bz2",
+  "runtime": "piper-tts 1.8.0",
+  "files": {
+    "model.onnx": {
+      "bytes": 18555534,
+      "sha256": "264f5b1d689355b0e0bb37ea6a4cd019e737955e1748138d251c2de139293a89"
+    },
+    "model.onnx.json": {
+      "bytes": 4159,
+      "sha256": "df38e892ed949f62d0c40978bc666de0b341c5f7921840ae7c72f4df8e8ffa05"
+    }
+  }
+}

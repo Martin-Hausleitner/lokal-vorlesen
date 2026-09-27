@@ -1,0 +1,12 @@
+/runtime/
+/*.app/
+/models/*.onnx
+/models/*.ort
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+*.wav
+*.mp3
+/build/
