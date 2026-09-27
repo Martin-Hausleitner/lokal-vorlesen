@@ -5,6 +5,7 @@
 #import <WebKit/WebKit.h>
 #import "OCRSelection.h"
 #import "LVAudioPlayer.h"
+#import "LVSpeechWorker.h"
 #include <signal.h>
 
 static NSString *Resource(NSString *name) {
@@ -41,6 +42,7 @@ static BOOL BackendReady(void) {
     NSString *model = SelectedModel(VoiceConfig());
     return [RuntimePython() hasPrefix:@"/"] && [fm isExecutableFileAtPath:RuntimePython()] &&
         [fm fileExistsAtPath:Resource(@"synthesize.py")] &&
+        [fm fileExistsAtPath:Resource(@"tts_worker.py")] &&
         model && [fm fileExistsAtPath:model] &&
         [fm fileExistsAtPath:[model stringByAppendingString:@".json"]];
 }
@@ -57,7 +59,7 @@ static NSTask *BackendTask(NSString *output, NSPipe *input) {
     task.standardError = [NSFileHandle fileHandleWithNullDevice];
     NSMutableDictionary *environment = [[[NSProcessInfo processInfo] environment] mutableCopy];
     environment[@"PYTHONUTF8"] = @"1";
-    environment[@"PYTHONNOUSERSITE"] = @"1";
+    environment[@"PYTHONNOUSERSITE"] = @"1"; environment[@"PYTHONDONTWRITEBYTECODE"] = @"1";
     task.environment = environment;
     return task;
 }
@@ -146,6 +148,7 @@ static NSString *UsableText(id value) {
 @property NSStatusItem *statusItem;
 @property LVAudioPlayer *player;
 @property NSTask *task;
+@property LVSpeechWorker *speechWorker;
 @property NSString *request;
 @property NSString *audioDirectory;
 @property NSString *generationDirectory;
@@ -561,6 +564,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     NSMenuItem *appItem = [[NSMenuItem alloc] init]; [main addItem:appItem];
     NSMenu *appMenu = [[NSMenu alloc] init];
     [appMenu addItemWithTitle:@"Player öffnen" action:@selector(openWindow:) keyEquivalent:@""] .target = self;
+    [appMenu addItemWithTitle:@"Textfeld ein-/ausblenden" action:@selector(toggleEditor:) keyEquivalent:@"e"].target = self;
     [appMenu addItemWithTitle:@"Stimmen & Modelle…" action:@selector(openVoices:) keyEquivalent:@","].target = self;
     [appMenu addItemWithTitle:@"Bereich vorlesen…" action:@selector(ocrAudio:) keyEquivalent:@""].target = self;
     [appMenu addItemWithTitle:@"Zwischenablage vorlesen" action:@selector(clipboardAudio:) keyEquivalent:@""].target = self;
@@ -664,7 +668,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     self.originalRequestText = nil;
     self.ocrGeneration++; [self.ocrSelection cancel];
     self.request = nil;
-    if (self.task.running) [self.task terminate];
+    if (self.task) { [self.speechWorker invalidate]; self.speechWorker = nil; }
     self.task = nil;
     [self clearPlayback];
     self.status.stringValue = @"Gestoppt";
@@ -685,39 +689,41 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     if (![[NSFileManager defaultManager] createDirectoryAtPath:directory withIntermediateDirectories:YES attributes:@{NSFilePosixPermissions:@0700} error:&error]) {
         self.status.stringValue = @"Temporärer Audioordner konnte nicht angelegt werden."; return;
     }
-    NSString *output = [directory stringByAppendingPathComponent:@"audio.wav"];
-    NSPipe *input = [NSPipe pipe]; NSTask *task = BackendTask(output, input);
-    task.arguments = [task.arguments arrayByAddingObjectsFromArray:@[@"--stream-directory", directory]];
+    NSDictionary *config = VoiceConfig();
+    NSString *model = SelectedModel(config);
+    NSInteger speaker = MAX(0, MIN(1000, [config[@"speaker"] integerValue]));
+    if (![self.speechWorker canReuseModel:model speaker:speaker]) {
+        [self.speechWorker invalidate];
+        self.speechWorker = [[LVSpeechWorker alloc] initWithPython:RuntimePython() script:Resource(@"tts_worker.py") model:model speaker:speaker error:&error];
+    }
+    if (!self.speechWorker) {
+        RemoveDirectory(directory); self.status.stringValue = @"Lokale Sprachengine konnte nicht starten."; return;
+    }
     self.audioDirectory = directory; self.generationStarted = CFAbsoluteTimeGetCurrent();
     self.audioActivity = [NSProcessInfo.processInfo beginActivityWithOptions:NSActivityUserInitiatedAllowingIdleSystemSleep | NSActivityLatencyCritical reason:@"Lokale Sprachausgabe"];
-    self.task = task; self.request = request; self.generationDirectory = directory;
-    self.pendingTasks[directory] = task;
+    self.task = self.speechWorker.task; self.request = request; self.generationDirectory = directory;
+    self.pendingTasks[directory] = self.task;
     self.status.stringValue = @"Erzeuge Audio lokal…"; [self record:@"generating"];
     __weak AudioApp *weakSelf = self;
-    task.terminationHandler = ^(NSTask *finished) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            AudioApp *strongSelf = weakSelf;
-            [strongSelf.pendingTasks removeObjectForKey:directory];
-            if (!strongSelf || ![strongSelf.request isEqualToString:request]) { RemoveDirectory(directory); return; }
-            strongSelf.task = nil; strongSelf.generationDirectory = nil;
-            if (finished.terminationStatus != 0) {
-                [strongSelf clearPlayback]; RemoveDirectory(directory); strongSelf.status.stringValue = @"Audio konnte nicht erzeugt werden.";
-                [strongSelf record:@"generation_failed"]; return;
-            }
-            strongSelf.streamDone = YES;
-            [strongSelf updateBuffer];
-        });
-    };
-    if (![task launchAndReturnError:&error]) {
-        self.task = nil; self.request = nil; self.generationDirectory = nil;
-        [self.pendingTasks removeObjectForKey:directory];
-        [self clearPlayback]; RemoveDirectory(directory); self.status.stringValue = @"Lokale Sprachengine konnte nicht starten."; return;
+    [self.speechWorker synthesizeText:usable directory:directory request:request completion:^(BOOL success) {
+        AudioApp *strongSelf = weakSelf;
+        if (!strongSelf) { RemoveDirectory(directory); return; }
+        [strongSelf finishGeneration:success request:request directory:directory];
+    }];
+}
+- (void)finishGeneration:(BOOL)success request:(NSString *)request directory:(NSString *)directory {
+    [self.pendingTasks removeObjectForKey:directory];
+    // Playback may finish from status.json before the protocol's done event.
+    // Release the matching generation independently of the playback token.
+    if ([self.generationDirectory isEqualToString:directory]) {
+        self.task = nil; self.generationDirectory = nil;
     }
-    NSData *data = [usable dataUsingEncoding:NSUTF8StringEncoding];
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
-        @try { [input.fileHandleForWriting writeData:data]; } @catch (NSException *exception) {}
-        @try { [input.fileHandleForWriting closeFile]; } @catch (NSException *exception) {}
-    });
+    if (![self.request isEqualToString:request]) { RemoveDirectory(directory); return; }
+    if (!success) {
+        [self clearPlayback]; RemoveDirectory(directory); self.status.stringValue = @"Audio konnte nicht erzeugt werden.";
+        [self record:@"generation_failed"]; return;
+    }
+    self.streamDone = YES; [self updateBuffer];
 }
 - (void)togglePause:(id)sender {
     if (!self.player) return;
@@ -838,6 +844,7 @@ static OSStatus HotKeyHandler(EventHandlerCallRef next, EventRef event, void *us
     if (self.voiceServer.running) [self.voiceServer terminate];
     if (self.voiceServer.running) [self.voiceServer waitUntilExit];
     [self stop:nil];
+    [self.speechWorker shutdownAndWait]; self.speechWorker = nil;
     NSDictionary<NSString *, NSTask *> *pending = [self.pendingTasks copy];
     for (NSString *directory in pending) {
         NSTask *task = pending[directory];

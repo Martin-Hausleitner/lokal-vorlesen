@@ -16,7 +16,7 @@ python3 benchmarks/run.py --python "$(cat "$APP/runtime-path.txt")" \
   --runs 20 --timeout 30 --output benchmark-installed-result.json
 ```
 
-Die aktuelle App startet für jeden Syntheseauftrag einen neuen Pythonprozess. Es gibt keinen residenten Warmmodell-Dienst. Deshalb trennt der Bericht den ersten beobachteten Prozess von den nachfolgenden sequenziellen Prozessen. Auch bei bereits laufender App lädt jeder neue Auftrag das Modell neu. Der Benchmark bedient die App nicht und misst keine warme GUI-Sequenz; er bildet deren Backend-Prozessstart ab.
+Dieser Vergleichspfad startet für jeden Syntheseauftrag einen neuen Pythonprozess und bildet den bisherigen Backend-Ablauf ab. Der Bericht trennt den ersten beobachteten Prozess von den nachfolgenden sequenziellen Prozessen. Die aktuelle App verwendet dagegen nach erfolgreicher Erzeugung einen wiederverwendbaren Worker; dafür steht unten ein eigener Benchmark. Keines der beiden Programme bedient die GUI.
 
 Die System- und Dateicaches werden weder geleert noch kontrolliert. „Erster Lauf“ bedeutet deshalb keinen nachgewiesenen Cold-cache-Start; nachfolgende Läufe belegen kein bereits geladenes Modell.
 
@@ -27,3 +27,16 @@ Der Bericht enthält Modell-, Konfigurations-, Synthese- und Benchmark-SHA-256, 
 ## Beispielmessung
 
 `measured-installed-2026-09-27.json`: 20/20 erfolgreiche Prozesse, erster beobachteter Puffer 1,151 s; alle Läufe Median 0,899 s / p95 0,957 s. Keine Syntheseänderung wurde dafür installiert. Unterschiede zu früheren Messungen sind keine nachgewiesene Optimierung.
+
+## Wiederverwendetes Modell
+
+```sh
+python3 benchmarks/resident.py --python runtime/bin/python3 --worker tts_worker.py \
+  --model models/model.onnx --runs 10 --timeout 30 --output benchmark-resident-result.json
+```
+
+Diese Messung verwendet den privaten stdin/stdout-Worker. `startup_seconds` umfasst Prozessstart und Laden des Modells bis zur Bereitschaft. `launch_to_first_buffer_seconds` umfasst zusätzlich den ersten Auftrag bis zum sichtbaren WAV-Puffer. `subsequent_requests` misst neue Aufträge nach vollständigem Abschluss des vorherigen im selben Prozess. Die Prozesskennung bleibt dabei gleich. Die RSS-Stichprobe nach den Aufträgen beschreibt den damaligen Prozessspeicher, keinen Peak und keinen reinen Modellverbrauch. Die Ausgabe enthält Versionen, Modell-/Konfigurations-/Worker-/Synthese-/Benchmark-Hashes.
+
+Ein Vergleich ist nur mit gleichem Text, gleicher Stimme und vergleichbarer Last sinnvoll. Die zwei Programme kontrollieren weder Systemcaches noch konkurrierende Prozesse. Ein einzelner besserer Wert ist kein allgemeines Leistungsversprechen. Beide Programme müssen bei fehlendem oder fehlerhaftem Audio fehlschlagen.
+
+`measured-resident-2026-09-27.json`: 20/20 erfolgreiche Aufträge mit vollständiger PCM-Payload-Prüfung; kompletter Prozessstart bis erstem Puffer 1,065 s. Die 19 Folgeaufträge im selben Prozess erreichten Median 0,187 s / p95 0,247 s. RSS-Stichprobe nach den Aufträgen: 164,4 MiB. Diese Werte sind Backend-Messungen auf diesem Mac, keine gemessene Lautsprecher-Latenz.

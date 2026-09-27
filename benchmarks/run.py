@@ -38,8 +38,11 @@ def measure(python, script, model, timeout):
                 '--output', str(root / 'unused.wav'), '--stream-directory', str(stream)],
                 stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=errors, text=True)
             try:
-                process.stdin.write(TEXT)
-                process.stdin.close()
+                try:
+                    process.stdin.write(TEXT)
+                    process.stdin.close()
+                except BrokenPipeError:
+                    pass
                 while True:
                     elapsed = time.perf_counter() - start
                     if first is None and (stream / 'chunk-00000.wav').is_file():
@@ -66,7 +69,8 @@ def measure(python, script, model, timeout):
             valid = status['done'] and len(chunks) == status['count'] and bool(chunks)
             for chunk in chunks:
                 with wave.open(str(chunk)) as audio:
-                    valid = valid and audio.getnframes() > 0
+                    frames = audio.getnframes()
+                    valid = valid and frames > 0 and len(audio.readframes(frames)) == frames * audio.getnchannels() * audio.getsampwidth()
         except (OSError, ValueError, KeyError, wave.Error, EOFError):
             valid = False
         return {'first_buffer_seconds': first, 'completion_seconds': total,

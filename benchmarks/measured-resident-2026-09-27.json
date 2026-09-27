@@ -1,0 +1,294 @@
+{
+  "schema_version": 1,
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "versions": {
+    "python": "3.12.12 (main, Oct  9 2025, 11:07:00) [Clang 17.0.0 (clang-1700.4.4.1)]",
+    "piper": "1.8.0",
+    "onnxruntime": "1.30.0"
+  },
+  "scope": "Private stdin/stdout worker backend only. Startup includes process launch and model readiness. Requests are sequential in the same process; disk caches uncontrolled. No GUI, OCR or audible-playback measurement.",
+  "model_sha256": "264f5b1d689355b0e0bb37ea6a4cd019e737955e1748138d251c2de139293a89",
+  "config_sha256": "df38e892ed949f62d0c40978bc666de0b341c5f7921840ae7c72f4df8e8ffa05",
+  "worker_sha256": "74c770ce0289c90ee5d9b009368584bfe7ebedf2b544fe7f95976e77554aa3a1",
+  "synthesis_sha256": "533e0cae5d1149dfc219be5d63fb48ccab4e0a0c078dab13319b77f66aea7674",
+  "benchmark_sha256": "660429624449cdbaa776995670274078e675d3218318040d604e02e2c3d4145b",
+  "text": "Dieser Test misst die lokale Sprachausgabe. Der erste Puffer soll schnell bereitstehen.",
+  "timeout_seconds": 30,
+  "poll_interval_seconds": 0.005,
+  "p95_method": "nearest-rank, successful samples only",
+  "samples": [
+    {
+      "run": 1,
+      "first_buffer_seconds": 0.2604668749991106,
+      "completion_seconds": 0.4110297500010347,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 1.0654074999984005,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "0"
+      }
+    },
+    {
+      "run": 2,
+      "first_buffer_seconds": 0.19461874999979045,
+      "completion_seconds": 0.3619140829978278,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 1.4111529580004571,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "1"
+      }
+    },
+    {
+      "run": 3,
+      "first_buffer_seconds": 0.2269215409978642,
+      "completion_seconds": 0.4147102499991888,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 1.806519040997955,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "2"
+      }
+    },
+    {
+      "run": 4,
+      "first_buffer_seconds": 0.1921479160009767,
+      "completion_seconds": 0.3684605000016745,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 2.18678266599818,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "3"
+      }
+    },
+    {
+      "run": 5,
+      "first_buffer_seconds": 0.18673220799973933,
+      "completion_seconds": 0.3708771669989801,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 2.5503386659984244,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "4"
+      }
+    },
+    {
+      "run": 6,
+      "first_buffer_seconds": 0.18251537499963888,
+      "completion_seconds": 0.342869709002116,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 2.9173961659980705,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "5"
+      }
+    },
+    {
+      "run": 7,
+      "first_buffer_seconds": 0.19007291700108908,
+      "completion_seconds": 0.3709577920017182,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 3.268114999998943,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "6"
+      }
+    },
+    {
+      "run": 8,
+      "first_buffer_seconds": 0.18035079200126347,
+      "completion_seconds": 0.3684789590006403,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 3.629727457999252,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "7"
+      }
+    },
+    {
+      "run": 9,
+      "first_buffer_seconds": 0.1881728340013069,
+      "completion_seconds": 0.38499391699951957,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 4.006353000000672,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "8"
+      }
+    },
+    {
+      "run": 10,
+      "first_buffer_seconds": 0.2035604999982752,
+      "completion_seconds": 0.3626957919987035,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 4.406998540998757,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "9"
+      }
+    },
+    {
+      "run": 11,
+      "first_buffer_seconds": 0.1770011250009702,
+      "completion_seconds": 0.34663162500146427,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 4.743414415999723,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "10"
+      }
+    },
+    {
+      "run": 12,
+      "first_buffer_seconds": 0.24680224999974598,
+      "completion_seconds": 0.43832895800005645,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 5.160128374998749,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "11"
+      }
+    },
+    {
+      "run": 13,
+      "first_buffer_seconds": 0.1884712920000311,
+      "completion_seconds": 0.39998512499732897,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 5.540515000000596,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "12"
+      }
+    },
+    {
+      "run": 14,
+      "first_buffer_seconds": 0.18058237500008545,
+      "completion_seconds": 0.34571020799921826,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 5.932860207998601,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "13"
+      }
+    },
+    {
+      "run": 15,
+      "first_buffer_seconds": 0.1603069590019004,
+      "completion_seconds": 0.3254958750003425,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 6.258553125000617,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "14"
+      }
+    },
+    {
+      "run": 16,
+      "first_buffer_seconds": 0.17222208300154307,
+      "completion_seconds": 0.40177062500151806,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 6.596219582999765,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "15"
+      }
+    },
+    {
+      "run": 17,
+      "first_buffer_seconds": 0.17705929099975037,
+      "completion_seconds": 0.3568163750023814,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 7.00310666599762,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "16"
+      }
+    },
+    {
+      "run": 18,
+      "first_buffer_seconds": 0.1759888749984384,
+      "completion_seconds": 0.3899008749976929,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 7.359162749999086,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "17"
+      }
+    },
+    {
+      "run": 19,
+      "first_buffer_seconds": 0.18757020899647614,
+      "completion_seconds": 0.3460687089973362,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 7.760918124997261,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "18"
+      }
+    },
+    {
+      "run": 20,
+      "first_buffer_seconds": 0.18341349999900558,
+      "completion_seconds": 0.3511120420007501,
+      "ok": true,
+      "launch_to_first_buffer_seconds": 8.10307979099889,
+      "timeout": false,
+      "terminal": {
+        "event": "done",
+        "request_id": "19"
+      }
+    }
+  ],
+  "startup_seconds": 0.8048247909973725,
+  "ready": true,
+  "launch_to_first_buffer_seconds": 1.0654074999984005,
+  "worker_pid": 69283,
+  "rss_kib_after_requests": 168352,
+  "stderr_excerpt": "",
+  "summary": {
+    "first_request_after_ready": {
+      "first_buffer_seconds": {
+        "n": 1,
+        "median": 0.2604668749991106,
+        "p95": 0.2604668749991106
+      },
+      "completion_seconds": {
+        "n": 1,
+        "median": 0.4110297500010347,
+        "p95": 0.4110297500010347
+      }
+    },
+    "subsequent_requests": {
+      "first_buffer_seconds": {
+        "n": 19,
+        "median": 0.18673220799973933,
+        "p95": 0.24680224999974598
+      },
+      "completion_seconds": {
+        "n": 19,
+        "median": 0.3684605000016745,
+        "p95": 0.43832895800005645
+      }
+    }
+  },
+  "ok": true
+}

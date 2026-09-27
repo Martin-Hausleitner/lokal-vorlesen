@@ -29,6 +29,11 @@ class BenchmarkTests(unittest.TestCase):
         self.assertEqual(result['exit_code'], 0)
         self.assertFalse(result['ok'])
 
+    def test_early_child_exit_is_reported(self):
+        result = self.run_child("import sys; sys.exit(7)", 2)
+        self.assertEqual(result["exit_code"], 7)
+        self.assertFalse(result["ok"])
+
     def test_large_stderr_does_not_deadlock(self):
         result = self.run_child('import sys; sys.stdin.read(); sys.stderr.write("x"*100000); sys.exit(3)', 2)
         self.assertEqual(result['exit_code'], 3)
