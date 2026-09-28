@@ -16,4 +16,5 @@ fi
 mkdir -p "$HOME/Applications"
 /usr/bin/ditto "$SOURCE" "$DEST"
 /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$DEST"
+./autostart.command --enable
 printf 'Installiert: %s\nApp öffnen, danach Text markieren > Rechtsklick > Dienste > Generate Audio.\n' "$DEST"

@@ -34,6 +34,24 @@ Die Einrichtung lädt das Modell mit geprüfter SHA-256-Prüfsumme und die festg
 
 Dies ist ein lokales Open-Source-Projekt, kein notarisiertes App-Store-Paket.
 
+## Start bei Anmeldung
+
+`install.command` richtet einen einmaligen Start der installierten App bei der macOS-Anmeldung ein. Die Leiste startet verborgen; die Vorlese-Shortcuts stehen nach dem App-Start bereit. Ein manuelles **Beenden** wird respektiert: kein KeepAlive und keine Neustartschleife.
+
+Für eine bereits installierte App ohne Neubau:
+
+```sh
+./autostart.command --enable
+```
+
+Der erste Aufruf startet die App auch in der aktuellen Sitzung im Hintergrund. Wiederholte Aufrufe mit unverändertem, bereits geladenem Auftrag starten sie nicht erneut. Zum Entfernen des Autostarts, ohne eine laufende App zu beenden:
+
+```sh
+./autostart.command --disable
+```
+
+Der benutzerspezifische Auftrag liegt unter `~/Library/LaunchAgents/local.codex.lokalvorlesen.login.plist`. Das App-Bundle wird dabei nicht verändert. `--print` zeigt die erzeugte plist ohne Installation.
+
 ## Bedienung
 
 Die Leiste startet ausgeblendet und verschwindet nach drei Sekunden ohne Nutzung. Beim Vorleseauftrag erscheint sie automatisch. Wiedergabe, Pufferung, Pause, offene Einstellungen, Maus über der Leiste und aktive Texteingabe halten sie sichtbar. Über das ▶︎-Menüleistensymbol → **Generate Audio** oder **App-Menü → Player öffnen** lässt sie sich jederzeit zurückholen; **⌘E** öffnet die Texteingabe.
